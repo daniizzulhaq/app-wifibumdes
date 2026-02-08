@@ -251,19 +251,19 @@ class TagihanController extends Controller
                     min($request->tanggal, cal_days_in_month(CAL_GREGORIAN, $request->bulan, $request->tahun))
                 );
 
-                // Generate tagihan
-                Tagihan::create([
-                    'pelanggan_id' => $pelanggan->id,
-                    'bulan' => (int)$request->bulan,
-                    'tahun' => (int)$request->tahun,
-                    'tanggal_jatuh_tempo' => $tanggalJatuhTempo,
-                    'jumlah' => $pelanggan->paket->harga ?? 0,
-                    'status' => 'belum_lunas', // Status awal: belum_lunas
-                    'tanggal_bayar' => null,
-                    'metode_bayar' => null,
-                    'keterangan' => null,
-                    'dikonfirmasi_oleh' => null,
-                ]);
+               // Generate tagihan
+Tagihan::create([
+    'pelanggan_id' => $pelanggan->id,
+    'bulan' => (int)$request->bulan,
+    'tahun' => (int)$request->tahun,
+    'tanggal_jatuh_tempo' => $tanggalJatuhTempo,
+    'jumlah' => $pelanggan->paket->harga ?? 0,
+    'status' => 'belum_bayar', // ✓ Ubah dari 'belum_lunas' ke 'belum_bayar'
+    'tanggal_bayar' => null,
+    'metode_pembayaran' => null, // ✓ Perbaiki dari 'metode_bayar'
+    'keterangan' => null,
+    'dikonfirmasi_oleh' => null,
+]);
 
                 $generated++;
             }
@@ -300,20 +300,20 @@ class TagihanController extends Controller
      * Bisa dijadwalkan via Cron Job
      */
     public function updateStatusNunggak()
-    {
-        try {
-            $updated = Tagihan::where('status', 'belum_lunas')
-                ->where('tanggal_jatuh_tempo', '<', now())
-                ->update(['status' => 'nunggak']);
+{
+    try {
+        $updated = Tagihan::where('status', 'belum_bayar') // ✓ Ubah dari 'belum_lunas'
+            ->where('tanggal_jatuh_tempo', '<', now())
+            ->update(['status' => 'nunggak']);
 
-            return redirect()->back()
-                ->with('success', "✓ Berhasil update {$updated} tagihan menjadi status nunggak.");
+        return redirect()->back()
+            ->with('success', "✓ Berhasil update {$updated} tagihan menjadi status nunggak.");
 
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', '✗ Gagal update status: ' . $e->getMessage());
-        }
+    } catch (\Exception $e) {
+        return redirect()->back()
+            ->with('error', '✗ Gagal update status: ' . $e->getMessage());
     }
+}
 
     /**
      * Tampilkan tagihan yang menunggu konfirmasi
