@@ -241,10 +241,6 @@
                 <i class="fas fa-file-invoice text-3xl text-green-600 mb-2 group-hover:scale-110 transition"></i>
                 <span class="text-sm font-medium text-gray-700">Generate Tagihan</span>
             </button>
-            <a href="{{ route('admin.laporan') }}" class="flex flex-col items-center justify-center p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition group">
-                <i class="fas fa-chart-bar text-3xl text-purple-600 mb-2 group-hover:scale-110 transition"></i>
-                <span class="text-sm font-medium text-gray-700">Lihat Laporan</span>
-            </a>
             <a href="{{ route('admin.paket.create') }}" class="flex flex-col items-center justify-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition group">
                 <i class="fas fa-box text-3xl text-orange-600 mb-2 group-hover:scale-110 transition"></i>
                 <span class="text-sm font-medium text-gray-700">Tambah Paket</span>
