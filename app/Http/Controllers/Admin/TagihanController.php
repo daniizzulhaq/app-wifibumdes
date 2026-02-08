@@ -258,7 +258,7 @@ Tagihan::create([
     'tahun' => (int)$request->tahun,
     'tanggal_jatuh_tempo' => $tanggalJatuhTempo,
     'jumlah' => $pelanggan->paket->harga ?? 0,
-    'status' => 'belum_bayar', // ✓ Ubah dari 'belum_lunas' ke 'belum_bayar'
+    'status' => 'nunggak', // ✓ Ubah dari 'belum_lunas' ke 'belum_bayar'
     'tanggal_bayar' => null,
     'metode_pembayaran' => null, // ✓ Perbaiki dari 'metode_bayar'
     'keterangan' => null,
