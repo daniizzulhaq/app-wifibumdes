@@ -442,40 +442,40 @@
         <p>Periode: <strong>{{ $namaBulan[(int)$bulan] }} {{ $tahun }}</strong></p>
     </div>
 
-    <!-- Info Section -->
-    <div class="info-section">
-        <div class="info-box">
-            <h4>Informasi Periode</h4>
-            <p><strong>Bulan:</strong> {{ $namaBulan[(int)$bulan] }}</p>
-            <p><strong>Tahun:</strong> {{ $tahun }}</p>
-            <p><strong>Filter Status:</strong> {{ $status ? ucfirst(str_replace('_', ' ', $status)) : 'Semua Status' }}</p>
-        </div>
-        <div class="info-box">
-            <h4>Ringkasan Data</h4>
-            <p><strong>Total Pelanggan:</strong> {{ $jumlahPelanggan }} Pelanggan</p>
-            <p><strong>Sudah Lunas:</strong> {{ $jumlahLunas }} Pembayaran</p>
-            <p><strong>Belum Lunas:</strong> {{ $jumlahBelumLunas }} Tagihan</p>
-        </div>
+   <!-- Info Section -->
+<div class="info-section">
+    <div class="info-box">
+        <h4>Informasi Periode</h4>
+        <p><strong>Bulan:</strong> {{ $namaBulan[(int)$bulan] }}</p>
+        <p><strong>Tahun:</strong> {{ $tahun }}</p>
+        <p><strong>Filter Status:</strong> {{ $status ? ucfirst(str_replace('_', ' ', $status)) : 'Semua Status' }}</p>
     </div>
+    <div class="info-box">
+        <h4>Ringkasan Data</h4>
+        <p><strong>Total Pelanggan:</strong> {{ $jumlahPelanggan }} Pelanggan</p>
+        <p><strong>Sudah Lunas:</strong> {{ $jumlahLunas }} Pembayaran</p>
+        <p><strong>Nunggak:</strong> {{ $jumlahNunggak }} Tagihan</p>
+    </div>
+</div>
 
-    <!-- Summary Boxes -->
-    <div class="summary-container">
-        <div class="summary-box total">
-            <div class="label">Total Tagihan</div>
-            <div class="amount">Rp {{ number_format($totalTagihan, 0, ',', '.') }}</div>
-            <div class="count">{{ $jumlahPelanggan }} Pelanggan</div>
-        </div>
-        <div class="summary-box lunas">
-            <div class="label">Sudah Lunas</div>
-            <div class="amount">Rp {{ number_format($totalLunas, 0, ',', '.') }}</div>
-            <div class="count">{{ $jumlahLunas }} Pembayaran</div>
-        </div>
-        <div class="summary-box belum">
-            <div class="label">Belum Lunas</div>
-            <div class="amount">Rp {{ number_format($totalBelumLunas, 0, ',', '.') }}</div>
-            <div class="count">{{ $jumlahBelumLunas }} Tagihan</div>
-        </div>
+<!-- Summary Boxes -->
+<div class="summary-container">
+    <div class="summary-box total">
+        <div class="label">Total Tagihan</div>
+        <div class="amount">Rp {{ number_format($totalTagihan, 0, ',', '.') }}</div>
+        <div class="count">{{ $jumlahPelanggan }} Pelanggan</div>
     </div>
+    <div class="summary-box lunas">
+        <div class="label">Sudah Lunas</div>
+        <div class="amount">Rp {{ number_format($totalLunas, 0, ',', '.') }}</div>
+        <div class="count">{{ $jumlahLunas }} Pembayaran</div>
+    </div>
+    <div class="summary-box nunggak">
+        <div class="label">Nunggak</div>
+        <div class="amount">Rp {{ number_format($totalNunggak, 0, ',', '.') }}</div>
+        <div class="count">{{ $jumlahNunggak }} Tagihan</div>
+    </div>
+</div>
 
     <!-- Tabel Transaksi -->
     <table>
@@ -524,7 +524,7 @@
                     @endif
                 </td>
                 <td class="text-center" style="font-size: 10px; text-transform: capitalize;">
-                    {{ $item->metode_bayar ? str_replace('_', ' ', $item->metode_bayar) : '-' }}
+                    {{ $item->metode_pembayaran ? str_replace('_', ' ', $item->metode_pembayaran) : '-' }}
                 </td>
             </tr>
             @empty
@@ -549,8 +549,8 @@
                 <span style="color: #059669; font-weight: bold;">Rp {{ number_format($totalLunas, 0, ',', '.') }}</span>
             </div>
             <div class="total-row">
-                <span class="label">Belum Lunas:</span>
-                <span style="color: #dc2626; font-weight: bold;">Rp {{ number_format($totalBelumLunas, 0, ',', '.') }}</span>
+                <span class="label">Nunggak:</span>
+                <span style="color: #dc2626; font-weight: bold;">Rp {{ number_format($totalNunggak, 0, ',', '.') }}</span>
             </div>
             <div class="total-row main">
                 <span class="label">Persentase Lunas:</span>
@@ -565,7 +565,6 @@
         <p>• <strong>LUNAS</strong> = Pembayaran sudah dikonfirmasi oleh admin dan dana masuk ke kas</p>
         <p>• <strong>MENUNGGU</strong> = Pelanggan sudah upload bukti bayar, menunggu konfirmasi admin</p>
         <p>• <strong>NUNGGAK</strong> = Tagihan sudah lewat jatuh tempo dan belum dibayar</p>
-        <p>• <strong>BELUM LUNAS</strong> = Tagihan belum dibayar dan masih dalam tenggat waktu</p>
     </div>
 
     <!-- Tanda Tangan -->

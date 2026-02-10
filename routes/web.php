@@ -153,6 +153,8 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->name('petugas.')
         Route::post('/batch-konfirmasi', [PembayaranController::class, 'batchKonfirmasi'])->name('batch-konfirmasi');
         Route::get('/{tagihan}/kwitansi', [PembayaranController::class, 'cetakKwitansi'])->name('kwitansi');
         Route::post('/{tagihan}/tolak', [PembayaranController::class, 'tolak'])->name('tolak');
+
+         Route::get('/laporan/harian', [PembayaranController::class, 'laporanHarian'])->name('laporan-harian');
     });
 
 

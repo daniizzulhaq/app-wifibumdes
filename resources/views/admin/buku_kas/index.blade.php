@@ -240,7 +240,7 @@
     /* Filters */
     .filters {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr 0.5fr 0.5fr;
+        grid-template-columns: 1fr 1fr 1fr 1fr 0.5fr 0.5fr;
         gap: 15px;
         margin-bottom: 20px;
     }
@@ -372,32 +372,6 @@
         border-radius: 6px;
         font-size: 12px;
         font-weight: 600;
-    }
-
-    /* Referensi Tag */
-    .ref-tag {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        background: #fef3c7;
-        color: #92400e;
-        padding: 3px 8px;
-        border-radius: 5px;
-        font-size: 11px;
-        font-weight: 600;
-        margin-top: 4px;
-    }
-
-    .ref-tag i {
-        font-size: 10px;
-    }
-
-    /* Lock Icon for protected transactions */
-    .protected-icon {
-        color: #f59e0b;
-        font-size: 11px;
-        margin-left: 5px;
-        cursor: help;
     }
 
     /* Empty State */
@@ -571,6 +545,15 @@ $periodeTampil = $namaBulan[(int)$bulanFilter] . ' ' . $tahunFilter;
                         </select>
                     </div>
                     <div class="filter-group">
+                        <label>Kategori</label>
+                        <select name="kategori" class="filter-select">
+                            <option value="">Semua Kategori</option>
+                            @foreach($kategoriList as $key => $label)
+                                <option value="{{ $key }}" {{ request('kategori') == $key ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="filter-group">
                         <label>&nbsp;</label>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-filter"></i> Filter
@@ -595,7 +578,7 @@ $periodeTampil = $namaBulan[(int)$bulanFilter] . ' ' . $tahunFilter;
                 <a href="{{ route('admin.buku_kas.create') }}" class="btn btn-primary btn-sm">
                     <i class="fas fa-plus"></i> Tambah Baru
                 </a>
-                <a href="{{ route('admin.buku_kas.cetak', ['bulan' => $bulanFilter, 'tahun' => $tahunFilter]) }}" 
+                <a href="{{ route('admin.buku_kas.cetak', array_filter(['bulan' => $bulanFilter, 'tahun' => $tahunFilter, 'jenis' => request('jenis'), 'kategori' => request('kategori')])) }}" 
                    class="btn btn-warning btn-sm" target="_blank">
                     <i class="fas fa-print"></i> Cetak Laporan
                 </a>
@@ -617,69 +600,68 @@ $periodeTampil = $namaBulan[(int)$bulanFilter] . ' ' . $tahunFilter;
                                 <th style="width: 150px;">Aksi</th>
                             </tr>
                         </thead>
-                        {{-- Ganti bagian tbody --}}
-<tbody>
-    @foreach ($bukuKas as $key => $item)
-    <tr>
-        <td>{{ $key + 1 }}</td>
-        <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}</td>
-        <td>
-            @if ($item->jenis == 'pemasukan')
-                <span class="badge badge-success"><span class="dot"></span> Pemasukan</span>
-            @else
-                <span class="badge badge-danger"><span class="dot"></span> Pengeluaran</span>
-            @endif
-        </td>
-        <td>
-            <span class="kategori-tag">{{ str_replace('_', ' ', ucfirst($item->kategori)) }}</span>
-        </td>
-        <td class="td-right">
-            <span class="nominal-{{ $item->jenis == 'pemasukan' ? 'masuk' : 'keluar' }}">
-                @if ($item->jenis == 'pengeluaran') - @endif
-                Rp {{ number_format($item->nominal, 0, ',', '.') }}
-            </span>
-        </td>
-        <td>{{ Str::limit($item->keterangan ?? '-', 50) }}</td>
-        <td class="td-center">
-            <div class="action-buttons">
-                <a href="{{ route('admin.buku_kas.edit', $item->id) }}" 
-                   class="btn btn-info btn-sm" title="Edit">
-                    <i class="fas fa-edit"></i>
-                </a>
-                <form method="POST" action="{{ route('admin.buku_kas.destroy', $item->id) }}"
-                      onsubmit="return confirm('Yakin ingin hapus transaksi ini?')"
-                      style="display: inline;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger btn-sm" title="Hapus">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </form>
-            </div>
-        </td>
-    </tr>
-    @endforeach
-</tbody>
+                        <tbody>
+                            @foreach ($bukuKas as $key => $item)
+                            <tr>
+                                <td>{{ $key + 1 }}</td>
+                                <td>{{ \Carbon\Carbon::parse($item->tanggal)->format('d M Y') }}</td>
+                                <td>
+                                    @if ($item->jenis == 'pemasukan')
+                                        <span class="badge badge-success"><span class="dot"></span> Pemasukan</span>
+                                    @else
+                                        <span class="badge badge-danger"><span class="dot"></span> Pengeluaran</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="kategori-tag">{{ str_replace('_', ' ', ucfirst($item->kategori)) }}</span>
+                                </td>
+                                <td class="td-right">
+                                    <span class="nominal-{{ $item->jenis == 'pemasukan' ? 'masuk' : 'keluar' }}">
+                                        @if ($item->jenis == 'pengeluaran') - @endif
+                                        Rp {{ number_format($item->nominal, 0, ',', '.') }}
+                                    </span>
+                                </td>
+                                <td>{{ Str::limit($item->keterangan ?? '-', 50) }}</td>
+                                <td class="td-center">
+                                    <div class="action-buttons">
+                                        <a href="{{ route('admin.buku_kas.edit', $item->id) }}" 
+                                           class="btn btn-info btn-sm" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form method="POST" action="{{ route('admin.buku_kas.destroy', $item->id) }}"
+                                              onsubmit="return confirm('Yakin ingin hapus transaksi ini?')"
+                                              style="display: inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Hapus">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
                     </table>
                 </div>
 
-               {{-- Summary Footer --}}
-<div style="margin-top: 20px; padding: 15px; background: #f9fafb; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-    <div style="font-size: 13px; color: #6b7280;">
-        <i class="fas fa-info-circle"></i> Total {{ $bukuKas->count() }} transaksi di periode ini
-    </div>
-    <div style="display: flex; gap: 20px; font-size: 14px; font-weight: 600;">
-        <span style="color: #059669;">
-            <i class="fas fa-arrow-down"></i> Rp {{ number_format($totalPemasukan, 0, ',', '.') }}
-        </span>
-        <span style="color: #dc2626;">
-            <i class="fas fa-arrow-up"></i> Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}
-        </span>
-        <span style="color: {{ $saldo >= 0 ? '#3b82f6' : '#ef4444' }}">
-            <i class="fas fa-wallet"></i> Rp {{ number_format($saldo, 0, ',', '.') }}
-        </span>
-    </div>
-</div>
+                {{-- Summary Footer --}}
+                <div style="margin-top: 20px; padding: 15px; background: #f9fafb; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="font-size: 13px; color: #6b7280;">
+                        <i class="fas fa-info-circle"></i> Total {{ $bukuKas->count() }} transaksi di periode ini
+                    </div>
+                    <div style="display: flex; gap: 20px; font-size: 14px; font-weight: 600;">
+                        <span style="color: #059669;">
+                            <i class="fas fa-arrow-down"></i> Rp {{ number_format($totalPemasukan, 0, ',', '.') }}
+                        </span>
+                        <span style="color: #dc2626;">
+                            <i class="fas fa-arrow-up"></i> Rp {{ number_format($totalPengeluaran, 0, ',', '.') }}
+                        </span>
+                        <span style="color: {{ $saldo >= 0 ? '#3b82f6' : '#ef4444' }}">
+                            <i class="fas fa-wallet"></i> Rp {{ number_format($saldo, 0, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
             @else
                 <div class="empty-state">
                     <i class="fas fa-book-open"></i>

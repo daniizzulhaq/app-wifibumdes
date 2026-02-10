@@ -38,7 +38,7 @@
     /* Stats Cards */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 20px;
         margin-bottom: 30px;
     }
@@ -50,6 +50,8 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         border-left: 4px solid;
         transition: transform 0.2s;
+        position: relative;
+        overflow: hidden;
     }
     
     .stat-card:hover {
@@ -60,17 +62,21 @@
     .stat-card.red { border-color: #ef4444; }
     .stat-card.orange { border-color: #f59e0b; }
     .stat-card.blue { border-color: #3b82f6; }
+    .stat-card.green { border-color: #10b981; }
+    .stat-card.purple { border-color: #8b5cf6; }
+    .stat-card.emerald { border-color: #34d399; }
     
     .stat-card h6 {
         color: #6b7280;
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 600;
         margin: 0 0 8px 0;
         text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     .stat-card h3 {
-        font-size: 32px;
+        font-size: 28px;
         font-weight: 800;
         margin: 0;
         color: #111827;
@@ -80,6 +86,49 @@
         color: #6b7280;
         font-size: 13px;
         margin: 8px 0 0 0;
+    }
+
+    .stat-icon {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 48px;
+        opacity: 0.15;
+    }
+
+    .stat-card.green .stat-icon { color: #10b981; }
+    .stat-card.purple .stat-icon { color: #8b5cf6; }
+    .stat-card.emerald .stat-icon { color: #34d399; }
+    
+    /* Alert Info Box */
+    .info-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px 24px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+    }
+
+    .info-box i {
+        font-size: 32px;
+        opacity: 0.9;
+    }
+
+    .info-box-content h4 {
+        margin: 0 0 5px 0;
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .info-box-content p {
+        margin: 0;
+        font-size: 14px;
+        opacity: 0.95;
     }
     
     /* Card */
@@ -186,7 +235,6 @@
         z-index: 1;
     }
     
-    /* Ensure table buttons don't block modal */
     table .btn {
         z-index: 0 !important;
     }
@@ -221,6 +269,10 @@
     .btn-warning {
         background: #f59e0b;
         color: white;
+    }
+
+    .btn-warning:hover {
+        background: #d97706;
     }
 
     .btn-secondary {
@@ -337,7 +389,7 @@
         color: inherit;
     }
 
-    /* Modal - FIXED Z-INDEX AND POINTER EVENTS */
+    /* Modal */
     .modal {
         display: none;
         position: fixed;
@@ -450,7 +502,6 @@
         color: #ef4444;
     }
 
-    /* Ensure all form elements are clickable */
     .modal input,
     .modal select,
     .modal textarea,
@@ -482,24 +533,59 @@ $namaBulan = [
             <h2>💳 Proses Pembayaran</h2>
             <p>Kelola dan konfirmasi pembayaran pelanggan</p>
         </div>
+        <div>
+            <a href="{{ route('petugas.pembayaran.laporan-harian') }}" class="btn btn-warning">
+                <i class="fas fa-file-invoice-dollar"></i> Laporan Harian
+            </a>
+        </div>
+    </div>
+
+    <!-- Info Box Penarikan Hari Ini -->
+    <div class="info-box">
+        <i class="fas fa-hand-holding-usd"></i>
+        <div class="info-box-content">
+            <h4>💰 Penarikan Tunai Hari Ini: Rp {{ number_format($penarikanTunaiHariIni, 0, ',', '.') }}</h4>
+            <p>Total uang tunai yang perlu dibawa ke kantor dari {{ $jumlahTransaksiHariIni }} transaksi hari ini</p>
+        </div>
     </div>
 
     <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card red">
+            <i class="fas fa-exclamation-triangle stat-icon"></i>
             <h6>Total Tunggakan</h6>
             <h3>Rp {{ number_format($totalNunggak, 0, ',', '.') }}</h3>
             <p>Perlu ditindaklanjuti</p>
         </div>
         <div class="stat-card orange">
+            <i class="fas fa-file-invoice stat-icon"></i>
             <h6>Jumlah Tagihan</h6>
             <h3>{{ $jumlahTagihan }}</h3>
             <p>Tagihan belum lunas</p>
         </div>
         <div class="stat-card blue">
+            <i class="fas fa-users stat-icon"></i>
             <h6>Pelanggan Nunggak</h6>
             <h3>{{ $pelangganNunggak }}</h3>
             <p>Pelanggan dengan tunggakan</p>
+        </div>
+        <div class="stat-card green">
+            <i class="fas fa-money-bill-wave stat-icon"></i>
+            <h6>Total Penarikan Hari Ini</h6>
+            <h3>Rp {{ number_format($penarikanHariIni, 0, ',', '.') }}</h3>
+            <p>Semua metode pembayaran</p>
+        </div>
+        <div class="stat-card emerald">
+            <i class="fas fa-receipt stat-icon"></i>
+            <h6>Transaksi Hari Ini</h6>
+            <h3>{{ $jumlahTransaksiHariIni }}</h3>
+            <p>Pembayaran dikonfirmasi</p>
+        </div>
+        <div class="stat-card purple">
+            <i class="fas fa-wallet stat-icon"></i>
+            <h6>Tunai Hari Ini</h6>
+            <h3>Rp {{ number_format($penarikanTunaiHariIni, 0, ',', '.') }}</h3>
+            <p>Uang cash yang ditarik</p>
         </div>
     </div>
 
@@ -682,12 +768,15 @@ $namaBulan = [
                 
                 <div class="form-group">
                     <label>Metode Pembayaran <span class="text-danger">*</span></label>
-                    <select name="metode_bayar" class="form-control" required>
+                    <select name="metode_pembayaran" class="form-control" required>
                         <option value="">-- Pilih Metode --</option>
-                        <option value="tunai">Tunai</option>
-                        <option value="transfer">Transfer Bank</option>
-                        <option value="qris">QRIS</option>
+                        <option value="tunai">💵 Tunai (Cash)</option>
+                        <option value="transfer">🏦 Transfer Bank</option>
+                        <option value="qris">📱 QRIS</option>
                     </select>
+                    <small style="color: #6b7280; font-size: 12px; margin-top: 5px; display: block;">
+                        <i class="fas fa-info-circle"></i> Pilih "Tunai" jika menerima pembayaran cash langsung
+                    </small>
                 </div>
                 
                 <div class="form-group">
@@ -718,13 +807,11 @@ function openBayarModal(id, nama, periode, jumlah) {
     document.getElementById('inputJumlahBayar').value = jumlah;
     document.getElementById('bayarForm').action = '/petugas/pembayaran/' + id + '/konfirmasi';
     document.getElementById('bayarModal').classList.add('show');
-    // Prevent body scroll when modal is open
     document.body.style.overflow = 'hidden';
 }
 
 function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('show');
-    // Restore body scroll when modal is closed
     document.body.style.overflow = 'auto';
 }
 

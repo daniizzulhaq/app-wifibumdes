@@ -33,11 +33,11 @@ class LaporanTagihanController extends Controller
         // Hitung statistik
         $totalTagihan = $tagihan->sum('jumlah');
         $totalLunas = $tagihan->where('status', 'lunas')->sum('jumlah');
-        $totalBelumLunas = $tagihan->whereIn('status', ['belum_lunas', 'menunggu_konfirmasi'])->sum('jumlah');
+        $totalNunggak = $tagihan->whereIn('status', ['nunggak', 'belum_bayar', 'menunggu_konfirmasi'])->sum('jumlah'); // ✅ GANTI
         
         $jumlahPelanggan = $tagihan->count();
         $jumlahLunas = $tagihan->where('status', 'lunas')->count();
-        $jumlahBelumLunas = $tagihan->whereIn('status', ['belum_lunas', 'menunggu_konfirmasi'])->count();
+        $jumlahNunggak = $tagihan->whereIn('status', ['nunggak', 'belum_bayar', 'menunggu_konfirmasi'])->count(); // ✅ GANTI
 
         return view('admin.laporan.tagihan', compact(
             'tagihan',
@@ -46,10 +46,10 @@ class LaporanTagihanController extends Controller
             'status',
             'totalTagihan',
             'totalLunas',
-            'totalBelumLunas',
+            'totalNunggak',      // ✅ GANTI
             'jumlahPelanggan',
             'jumlahLunas',
-            'jumlahBelumLunas'
+            'jumlahNunggak'      // ✅ GANTI
         ));
     }
 
@@ -76,11 +76,11 @@ class LaporanTagihanController extends Controller
         // Hitung statistik
         $totalTagihan = $tagihan->sum('jumlah');
         $totalLunas = $tagihan->where('status', 'lunas')->sum('jumlah');
-        $totalBelumLunas = $tagihan->whereIn('status', ['belum_lunas', 'menunggu_konfirmasi'])->sum('jumlah');
+        $totalNunggak = $tagihan->whereIn('status', ['nunggak', 'belum_bayar', 'menunggu_konfirmasi'])->sum('jumlah'); // ✅ GANTI
         
         $jumlahPelanggan = $tagihan->count();
         $jumlahLunas = $tagihan->where('status', 'lunas')->count();
-        $jumlahBelumLunas = $tagihan->whereIn('status', ['belum_lunas', 'menunggu_konfirmasi'])->count();
+        $jumlahNunggak = $tagihan->whereIn('status', ['nunggak', 'belum_bayar', 'menunggu_konfirmasi'])->count(); // ✅ GANTI
 
         $namaBulan = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
@@ -95,10 +95,10 @@ class LaporanTagihanController extends Controller
             'status',
             'totalTagihan',
             'totalLunas',
-            'totalBelumLunas',
+            'totalNunggak',      // ✅ GANTI
             'jumlahPelanggan',
             'jumlahLunas',
-            'jumlahBelumLunas',
+            'jumlahNunggak',     // ✅ GANTI
             'namaBulan'
         ));
     }
@@ -145,7 +145,7 @@ class LaporanTagihanController extends Controller
         try {
             // Reset data pembayaran
             $tagihan->update([
-                'status' => 'belum_lunas',
+                'status' => 'nunggak',        // ✅ GANTI dari 'belum_lunas'
                 'tanggal_bayar' => null,
                 'metode_bayar' => null,
                 'bukti_bayar' => null
@@ -185,13 +185,13 @@ class LaporanTagihanController extends Controller
 
             $totalTagihan = $tagihanBulan->sum('jumlah');
             $totalLunas = $tagihanBulan->where('status', 'lunas')->sum('jumlah');
-            $totalBelum = $tagihanBulan->whereIn('status', ['belum_lunas', 'menunggu_konfirmasi'])->sum('jumlah');
+            $totalNunggak = $tagihanBulan->whereIn('status', ['nunggak', 'belum_bayar', 'menunggu_konfirmasi'])->sum('jumlah'); // ✅ GANTI
 
             $laporanBulanan[$bulan] = [
                 'nama_bulan' => $namaBulan[$bulan],
                 'total_tagihan' => $totalTagihan,
                 'total_lunas' => $totalLunas,
-                'total_belum_lunas' => $totalBelum,
+                'total_nunggak' => $totalNunggak,  // ✅ GANTI
                 'jumlah_pelanggan' => $tagihanBulan->count(),
                 'jumlah_lunas' => $tagihanBulan->where('status', 'lunas')->count(),
                 'persentase' => $totalTagihan > 0 ? round(($totalLunas / $totalTagihan) * 100, 1) : 0
@@ -201,8 +201,8 @@ class LaporanTagihanController extends Controller
         // Total tahunan
         $totalTagihanTahun = Tagihan::where('tahun', $tahun)->sum('jumlah');
         $totalLunasTahun = Tagihan::where('tahun', $tahun)->where('status', 'lunas')->sum('jumlah');
-        $totalBelumTahun = Tagihan::where('tahun', $tahun)
-                                  ->whereIn('status', ['belum_lunas', 'menunggu_konfirmasi'])
+        $totalNunggakTahun = Tagihan::where('tahun', $tahun) // ✅ GANTI
+                                  ->whereIn('status', ['nunggak', 'belum_bayar', 'menunggu_konfirmasi'])
                                   ->sum('jumlah');
 
         return view('admin.laporan.tahunan', compact(
@@ -210,7 +210,7 @@ class LaporanTagihanController extends Controller
             'laporanBulanan',
             'totalTagihanTahun',
             'totalLunasTahun',
-            'totalBelumTahun',
+            'totalNunggakTahun',  // ✅ GANTI
             'namaBulan'
         ));
     }

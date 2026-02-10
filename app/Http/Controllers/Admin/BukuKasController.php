@@ -18,6 +18,7 @@ class BukuKasController extends Controller
         $bulan = $request->get('bulan', date('n'));
         $tahun = $request->get('tahun', date('Y'));
         $jenis = $request->get('jenis');
+        $kategori = $request->get('kategori');
 
         // Query dengan filter
         $query = BukuKas::whereYear('tanggal', $tahun)
@@ -27,28 +28,52 @@ class BukuKasController extends Controller
             $query->where('jenis', $jenis);
         }
 
+        if ($kategori) {
+            $query->where('kategori', $kategori);
+        }
+
         $bukuKas = $query->orderBy('tanggal', 'desc')
                         ->orderBy('created_at', 'desc')
                         ->get();
 
-        // Hitung total per bulan yang difilter
-        $totalPemasukan = BukuKas::whereYear('tanggal', $tahun)
-                                  ->whereMonth('tanggal', $bulan)
-                                  ->where('jenis', 'pemasukan')
-                                  ->sum('nominal');
+        // Hitung total per bulan yang difilter dengan mempertimbangkan kategori
+        $totalQuery = BukuKas::whereYear('tanggal', $tahun)
+                              ->whereMonth('tanggal', $bulan);
+        
+        if ($kategori) {
+            $totalQuery->where('kategori', $kategori);
+        }
 
-        $totalPengeluaran = BukuKas::whereYear('tanggal', $tahun)
-                                    ->whereMonth('tanggal', $bulan)
-                                    ->where('jenis', 'pengeluaran')
-                                    ->sum('nominal');
+        $totalPemasukan = (clone $totalQuery)->where('jenis', 'pemasukan')->sum('nominal');
+        $totalPengeluaran = (clone $totalQuery)->where('jenis', 'pengeluaran')->sum('nominal');
 
         $saldo = $totalPemasukan - $totalPengeluaran;
+
+        // Daftar kategori untuk dropdown
+        $kategoriList = [
+            'operasional' => 'Operasional',
+            'perbaikan' => 'Perbaikan',
+            'perawatan' => 'Perawatan',
+            'pelatihan' => 'Pelatihan',
+            'stock_barang' => 'Stock Barang',
+            'tagihan_banwith' => 'Tagihan Bandwidth',
+            'honor_karyawan' => 'Honor Karyawan',
+            'sosial' => 'Sosial',
+            'donatur' => 'Donatur',
+            'listrik' => 'Listrik',
+            'bpjs' => 'BPJS',
+            'pajak' => 'Pajak',
+            'administrasi' => 'Administrasi',
+            'thr' => 'THR',
+            'lain_lain' => 'Lain-lain'
+        ];
 
         return view('admin.buku_kas.index', compact(
             'bukuKas',
             'totalPemasukan',
             'totalPengeluaran',
-            'saldo'
+            'saldo',
+            'kategoriList'
         ));
     }
 
@@ -156,12 +181,14 @@ class BukuKasController extends Controller
     }
 
     /**
-     * Cetak Laporan Per Bulan
+     * Cetak Laporan Per Bulan dengan Filter
      */
     public function cetak(Request $request)
     {
         $bulan = $request->get('bulan', date('n'));
         $tahun = $request->get('tahun', date('Y'));
+        $jenis = $request->get('jenis');
+        $kategori = $request->get('kategori');
 
         $namaBulan = [
             1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
@@ -169,16 +196,56 @@ class BukuKasController extends Controller
             9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
         ];
 
+        $kategoriList = [
+            'operasional' => 'Operasional',
+            'perbaikan' => 'Perbaikan',
+            'perawatan' => 'Perawatan',
+            'pelatihan' => 'Pelatihan',
+            'stock_barang' => 'Stock Barang',
+            'tagihan_banwith' => 'Tagihan Bandwidth',
+            'honor_karyawan' => 'Honor Karyawan',
+            'sosial' => 'Sosial',
+            'donatur' => 'Donatur',
+            'listrik' => 'Listrik',
+            'bpjs' => 'BPJS',
+            'pajak' => 'Pajak',
+            'administrasi' => 'Administrasi',
+            'thr' => 'THR',
+            'lain_lain' => 'Lain-lain'
+        ];
+
         $periodeTampil = $namaBulan[(int)$bulan] . ' ' . $tahun;
 
-        // Data transaksi per bulan
-        $bukuKas = BukuKas::whereYear('tanggal', $tahun)
-                          ->whereMonth('tanggal', $bulan)
-                          ->orderBy('tanggal', 'asc')
-                          ->orderBy('created_at', 'asc')
-                          ->get();
+        // Tambahkan info filter di periode tampil
+        $filterInfo = [];
+        if ($jenis) {
+            $filterInfo[] = ucfirst($jenis);
+        }
+        if ($kategori) {
+            $filterInfo[] = $kategoriList[$kategori];
+        }
+        
+        if (!empty($filterInfo)) {
+            $periodeTampil .= ' (' . implode(', ', $filterInfo) . ')';
+        }
 
-        // Total per bulan
+        // Data transaksi per bulan dengan filter
+        $query = BukuKas::whereYear('tanggal', $tahun)
+                        ->whereMonth('tanggal', $bulan);
+
+        if ($jenis) {
+            $query->where('jenis', $jenis);
+        }
+
+        if ($kategori) {
+            $query->where('kategori', $kategori);
+        }
+
+        $bukuKas = $query->orderBy('tanggal', 'asc')
+                        ->orderBy('created_at', 'asc')
+                        ->get();
+
+        // Total per bulan dengan filter
         $totalPemasukan = $bukuKas->where('jenis', 'pemasukan')->sum('nominal');
         $totalPengeluaran = $bukuKas->where('jenis', 'pengeluaran')->sum('nominal');
         $saldo = $totalPemasukan - $totalPengeluaran;
@@ -209,7 +276,9 @@ class BukuKasController extends Controller
             'totalPengeluaran',
             'saldo',
             'pemasukanPerKategori',
-            'pengeluaranPerKategori'
+            'pengeluaranPerKategori',
+            'jenis',
+            'kategori'
         ));
     }
 

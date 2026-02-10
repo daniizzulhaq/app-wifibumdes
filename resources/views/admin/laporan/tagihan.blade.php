@@ -373,9 +373,9 @@ $periodeTampil = $namaBulan[(int)$bulan] . ' ' . $tahun;
         <div class="stat-card red">
             <div class="stat-icon"><i class="fas fa-clock"></i></div>
             <div class="stat-info">
-                <h6>Belum Lunas</h6>
-                <h3>Rp {{ number_format($totalBelumLunas, 0, ',', '.') }}</h3>
-                <p>{{ $jumlahBelumLunas }} Tagihan</p>
+                <h6>Nunggak</h6>
+                <h3>Rp {{ number_format($totalNunggak, 0, ',', '.') }}</h3>
+                <p>{{ $jumlahNunggak }} Tagihan</p>
             </div>
         </div>
         <div class="stat-card yellow">
@@ -488,7 +488,7 @@ $periodeTampil = $namaBulan[(int)$bulan] . ' ' . $tahun;
                                         </span>
                                     @else
                                         <span class="badge badge-danger">
-                                            <span class="dot"></span> Belum Lunas
+                                            <span class="dot"></span> Nunggak
                                         </span>
                                     @endif
                                 </td>
@@ -530,7 +530,7 @@ $periodeTampil = $namaBulan[(int)$bulan] . ' ' . $tahun;
                             <i class="fas fa-check-circle"></i> Lunas: Rp {{ number_format($totalLunas, 0, ',', '.') }}
                         </span>
                         <span style="color: #dc2626;">
-                            <i class="fas fa-clock"></i> Belum: Rp {{ number_format($totalBelumLunas, 0, ',', '.') }}
+                            <i class="fas fa-clock"></i> Belum: Rp {{ number_format($totalNunggak, 0, ',', '.') }}
                         </span>
                     </div>
                 </div>

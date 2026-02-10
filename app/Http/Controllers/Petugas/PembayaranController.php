@@ -54,12 +54,38 @@ class PembayaranController extends Controller
             ->count('pelanggan_id');
         $menungguKonfirmasi = Tagihan::where('status', 'menunggu_konfirmasi')->count();
 
+        // Statistik penarikan petugas hari ini
+        $petugasId = auth()->id();
+        $today = Carbon::today();
+        
+        // Total semua pembayaran yang dikonfirmasi hari ini
+        $penarikanHariIni = Tagihan::where('dikonfirmasi_oleh', $petugasId)
+            ->whereDate('tanggal_bayar', $today)
+            ->where('status', 'lunas')
+            ->sum('jumlah');
+            
+        // Jumlah transaksi hari ini
+        $jumlahTransaksiHariIni = Tagihan::where('dikonfirmasi_oleh', $petugasId)
+            ->whereDate('tanggal_bayar', $today)
+            ->where('status', 'lunas')
+            ->count();
+            
+        // Khusus penarikan TUNAI hari ini (yang perlu dibawa ke kantor)
+        $penarikanTunaiHariIni = Tagihan::where('dikonfirmasi_oleh', $petugasId)
+            ->whereDate('tanggal_bayar', $today)
+            ->where('status', 'lunas')
+            ->where('metode_pembayaran', 'tunai')
+            ->sum('jumlah');
+
         return view('petugas.pembayaran.index', compact(
             'tagihans',
             'totalNunggak',
             'jumlahTagihan',
             'pelangganNunggak',
-            'menungguKonfirmasi'
+            'menungguKonfirmasi',
+            'penarikanHariIni',
+            'jumlahTransaksiHariIni',
+            'penarikanTunaiHariIni'
         ));
     }
 
@@ -88,7 +114,7 @@ class PembayaranController extends Controller
     {
         // Validasi
         $request->validate([
-            'metode_bayar' => 'required|in:tunai,transfer,qris',
+            'metode_pembayaran' => 'required|in:tunai,transfer,qris',
             'jumlah_bayar' => 'required|numeric|min:0',
             'tanggal_bayar' => 'nullable|date',
             'keterangan' => 'nullable|string|max:500',
@@ -97,13 +123,14 @@ class PembayaranController extends Controller
         try {
             DB::beginTransaction();
 
-            // Update tagihan
+            // Update tagihan dengan tracking petugas
             $tagihan->update([
                 'status' => 'lunas',
                 'tanggal_bayar' => $request->tanggal_bayar ?? Carbon::now(),
-                'metode_bayar' => $request->metode_bayar,
+                'metode_pembayaran' => $request->metode_pembayaran,
                 'jumlah_bayar' => $request->jumlah_bayar,
                 'keterangan' => $request->keterangan,
+                'dikonfirmasi_oleh' => auth()->id(), // Track petugas yang konfirmasi
             ]);
 
             DB::commit();
@@ -168,7 +195,7 @@ class PembayaranController extends Controller
         $request->validate([
             'tagihan_ids' => 'required|array',
             'tagihan_ids.*' => 'exists:tagihans,id',
-            'metode_bayar' => 'required|in:tunai,transfer,qris',
+            'metode_pembayaran' => 'required|in:tunai,transfer,qris',
             'tanggal_bayar' => 'nullable|date',
         ]);
 
@@ -182,8 +209,9 @@ class PembayaranController extends Controller
                     $tagihan->update([
                         'status' => 'lunas',
                         'tanggal_bayar' => $request->tanggal_bayar ?? Carbon::now(),
-                        'metode_bayar' => $request->metode_bayar,
+                        'metode_pembayaran' => $request->metode_pembayaran,
                         'jumlah_bayar' => $tagihan->jumlah,
+                        'dikonfirmasi_oleh' => auth()->id(),
                     ]);
                     $count++;
                 }
@@ -215,8 +243,51 @@ class PembayaranController extends Controller
                 ->with('error', 'Hanya tagihan yang sudah lunas yang bisa dicetak kwitansi!');
         }
 
-        $tagihan->load(['pelanggan.user', 'pelanggan.paket']);
+        $tagihan->load(['pelanggan.user', 'pelanggan.paket', 'petugasKonfirmasi']);
         
         return view('petugas.pembayaran.kwitansi', compact('tagihan'));
     }
+
+    /**
+     * Laporan penarikan harian petugas
+     */
+   public function laporanHarian(Request $request)
+{
+    $petugasId = auth()->id();
+    $tanggal = $request->input('tanggal') ? Carbon::parse($request->input('tanggal')) : Carbon::today();
+
+    // Ambil semua transaksi pada tanggal tertentu
+    $transaksiHariIni = Tagihan::with(['pelanggan.user', 'pelanggan.paket'])
+        ->where('dikonfirmasi_oleh', $petugasId)
+        ->whereDate('tanggal_bayar', $tanggal)
+        ->where('status', 'lunas')
+        ->orderBy('tanggal_bayar', 'desc')
+        ->get();
+
+    // Statistik berdasarkan metode pembayaran
+    $totalPenarikan = $transaksiHariIni->sum('jumlah');
+    
+    // ✅ GANTI jumlah_bayar → jumlah
+    $totalTunai = $transaksiHariIni->where('metode_pembayaran', 'tunai')->sum('jumlah');
+    $totalTransfer = $transaksiHariIni->where('metode_pembayaran', 'transfer')->sum('jumlah');
+    $totalQris = $transaksiHariIni->where('metode_pembayaran', 'qris')->sum('jumlah');
+    
+    $jumlahTunai = $transaksiHariIni->where('metode_pembayaran', 'tunai')->count();
+    $jumlahTransfer = $transaksiHariIni->where('metode_pembayaran', 'transfer')->count();
+    $jumlahQris = $transaksiHariIni->where('metode_pembayaran', 'qris')->count();
+    $jumlahTransaksi = $transaksiHariIni->count();
+
+    return view('petugas.pembayaran.laporan-harian', compact(
+        'transaksiHariIni',
+        'totalPenarikan',
+        'totalTunai',
+        'totalTransfer',
+        'totalQris',
+        'jumlahTunai',
+        'jumlahTransfer',
+        'jumlahQris',
+        'jumlahTransaksi',
+        'tanggal'
+    ));
+}
 }

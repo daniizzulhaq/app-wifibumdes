@@ -113,6 +113,19 @@
             margin-top: 5px;
         }
 
+        .filter-info {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .filter-info strong {
+            color: #667eea;
+        }
+
         /* Summary Box */
         .summary-container {
             display: flex;
@@ -351,6 +364,18 @@
     <div class="judul-laporan">
         <h3>Laporan Buku Kas</h3>
         <p>Periode: <strong>{{ $periodeTampil }}</strong></p>
+        
+        @if(isset($jenis) || isset($kategori))
+        <div class="filter-info">
+            <strong>Filter Diterapkan:</strong> 
+            @if(isset($jenis))
+                Jenis = {{ ucfirst($jenis) }}{{ isset($kategori) ? ', ' : '' }}
+            @endif
+            @if(isset($kategori))
+                Kategori = {{ str_replace('_', ' ', ucwords($kategori)) }}
+            @endif
+        </div>
+        @endif
     </div>
 
     <!-- Summary Boxes -->
@@ -409,6 +434,9 @@
             <tr class="empty-row">
                 <td colspan="6">
                     Tidak ada transaksi pada periode ini
+                    @if(isset($jenis) || isset($kategori))
+                        dengan filter yang diterapkan
+                    @endif
                 </td>
             </tr>
             @endforelse
@@ -453,6 +481,9 @@
         <p>- Laporan ini dicetak secara otomatis pada: {{ \Carbon\Carbon::now()->format('d/m/Y H:i:s') }} WIB</p>
         <p>- Dokumen ini adalah salinan resmi dari sistem BUMDes.Net Tinggarjaya</p>
         <p>- Untuk informasi lebih lanjut, hubungi WhatsApp: 08132632700</p>
+        @if(isset($jenis) || isset($kategori))
+        <p>- Laporan ini menampilkan data yang sudah difilter</p>
+        @endif
     </div>
 
     <!-- Auto Print Script -->
