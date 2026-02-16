@@ -33,14 +33,14 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // =====================
-        // PAKET WIFI
-        // =====================
-        $pakets = [
-            ['nama_paket' => 'Paket Basic', 'kecepatan' => '10 Mbps', 'harga' => 150000, 'deskripsi' => 'Cocok untuk browsing dan sosial media'],
-            ['nama_paket' => 'Paket Standard', 'kecepatan' => '20 Mbps', 'harga' => 250000, 'deskripsi' => 'Cocok untuk streaming dan gaming ringan'],
-            ['nama_paket' => 'Paket Premium', 'kecepatan' => '50 Mbps', 'harga' => 450000, 'deskripsi' => 'Cocok untuk keluarga dan gaming'],
-            ['nama_paket' => 'Paket Ultra', 'kecepatan' => '100 Mbps', 'harga' => 750000, 'deskripsi' => 'Cocok untuk bisnis dan streaming 4K'],
-        ];
+// PAKET WIFI
+// =====================
+$pakets = [
+    ['nama_paket' => 'Paket Basic', 'kecepatan' => '10 Mbps', 'harga' => 150000],
+    ['nama_paket' => 'Paket Standard', 'kecepatan' => '20 Mbps', 'harga' => 250000],
+    ['nama_paket' => 'Paket Premium', 'kecepatan' => '50 Mbps', 'harga' => 450000],
+    ['nama_paket' => 'Paket Ultra', 'kecepatan' => '100 Mbps', 'harga' => 750000],
+];
 
         foreach ($pakets as $paket) {
             PaketWifi::create($paket);
