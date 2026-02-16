@@ -9,6 +9,9 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
         }
 
         body {
@@ -32,6 +35,9 @@
             padding: 40px;
             position: relative;
             overflow: hidden;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
         }
 
         .invoice-header::before {
@@ -43,6 +49,8 @@
             height: 300px;
             background: rgba(255,255,255,0.1);
             border-radius: 50%;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
         .company-info {
@@ -100,6 +108,8 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-top: 10px;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
         /* Body */
@@ -144,6 +154,8 @@
 
         .invoice-table thead {
             background: #f3f4f6;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
         .invoice-table th {
@@ -185,6 +197,8 @@
             background: #f9fafb;
             padding: 25px;
             border-radius: 12px;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
         .summary-row {
@@ -210,6 +224,8 @@
             border-radius: 12px;
             padding: 25px;
             margin: 30px 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
         .payment-info h3 {
@@ -244,6 +260,8 @@
             background: #f9fafb;
             padding: 30px 40px;
             border-top: 1px solid #e5e7eb;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
 
         .thank-you {
@@ -301,11 +319,28 @@
             }
 
             .no-print {
-                display: none;
+                display: none !important;
             }
 
             .watermark {
-                display: none;
+                display: block;
+            }
+
+            /* Force all backgrounds and colors to print */
+            .invoice-header,
+            .invoice-header::before,
+            .status-badge,
+            .payment-info,
+            .invoice-summary,
+            .invoice-table thead,
+            .invoice-footer,
+            .thank-you h3,
+            .footer-info i,
+            .info-box .highlight,
+            .summary-row.total {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
             }
 
             @page {
