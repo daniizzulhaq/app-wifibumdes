@@ -33,21 +33,21 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // =====================
-// PAKET WIFI
-// =====================
-$pakets = [
-    ['nama_paket' => 'Paket Basic', 'kecepatan' => '10 Mbps', 'harga' => 150000],
-    ['nama_paket' => 'Paket Standard', 'kecepatan' => '20 Mbps', 'harga' => 250000],
-    ['nama_paket' => 'Paket Premium', 'kecepatan' => '50 Mbps', 'harga' => 450000],
-    ['nama_paket' => 'Paket Ultra', 'kecepatan' => '100 Mbps', 'harga' => 750000],
-];
+        // PAKET WIFI
+        // =====================
+        $pakets = [
+            ['nama_paket' => 'Paket Basic', 'kecepatan' => '10 Mbps', 'harga' => 150000],
+            ['nama_paket' => 'Paket Standard', 'kecepatan' => '20 Mbps', 'harga' => 250000],
+            ['nama_paket' => 'Paket Premium', 'kecepatan' => '50 Mbps', 'harga' => 450000],
+            ['nama_paket' => 'Paket Ultra', 'kecepatan' => '100 Mbps', 'harga' => 750000],
+        ];
 
         foreach ($pakets as $paket) {
             PaketWifi::create($paket);
         }
 
         // =====================
-        // PELANGGAN (1 USER SAJA)
+        // PELANGGAN (1 USER SAJA - TANPA TAGIHAN)
         // =====================
         $userPelanggan = User::create([
             'name' => 'Pelanggan 1',
@@ -58,17 +58,15 @@ $pakets = [
 
         $pelanggan = Pelanggan::create([
             'user_id' => $userPelanggan->id,
-            'kode_pelanggan' => 'PLG-001',
             'alamat' => 'Jl. Contoh No. 1, Kota Contoh',
-            'no_telepon' => '081234567801',
             'no_wa' => '081234567801',
             'link_maps' => 'https://maps.google.com/?q=-6.200000,106.816666',
             'foto_rumah' => null,
-            'paket_id' => 1, // Paket Basic
+            'paket_id' => 1,
             'status' => 'aktif',
         ]);
 
-        // PPPoE Account
+        // PPPoE
         PppoeAccount::create([
             'pelanggan_id' => $pelanggan->id,
             'username_pppoe' => 'user1',
