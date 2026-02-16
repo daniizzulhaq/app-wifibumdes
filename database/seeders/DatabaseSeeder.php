@@ -36,10 +36,10 @@ class DatabaseSeeder extends Seeder
         // PAKET WIFI
         // =====================
         $pakets = [
-            ['nama_paket' => 'Paket Basic', 'kecepatan' => '10 Mbps', 'harga' => 150000],
-            ['nama_paket' => 'Paket Standard', 'kecepatan' => '20 Mbps', 'harga' => 250000],
-            ['nama_paket' => 'Paket Premium', 'kecepatan' => '50 Mbps', 'harga' => 450000],
-            ['nama_paket' => 'Paket Ultra', 'kecepatan' => '100 Mbps', 'harga' => 750000],
+            ['nama_paket' => 'Paket Basic', 'kecepatan' => '10 Mbps', 'harga' => 150000, 'deskripsi' => 'Cocok untuk browsing dan sosial media'],
+            ['nama_paket' => 'Paket Standard', 'kecepatan' => '20 Mbps', 'harga' => 250000, 'deskripsi' => 'Cocok untuk streaming dan gaming ringan'],
+            ['nama_paket' => 'Paket Premium', 'kecepatan' => '50 Mbps', 'harga' => 450000, 'deskripsi' => 'Cocok untuk keluarga dan gaming'],
+            ['nama_paket' => 'Paket Ultra', 'kecepatan' => '100 Mbps', 'harga' => 750000, 'deskripsi' => 'Cocok untuk bisnis dan streaming 4K'],
         ];
 
         foreach ($pakets as $paket) {
@@ -47,83 +47,41 @@ class DatabaseSeeder extends Seeder
         }
 
         // =====================
-        // PELANGGAN + TAGIHAN
+        // PELANGGAN (1 USER SAJA)
         // =====================
-        for ($i = 1; $i <= 10; $i++) {
+        $userPelanggan = User::create([
+            'name' => 'Pelanggan 1',
+            'email' => 'pelanggan1@gmail.com',
+            'password' => Hash::make('password'),
+            'role' => 'pelanggan',
+        ]);
 
-            $userPelanggan = User::create([
-                'name' => "Pelanggan $i",
-                'email' => "pelanggan$i@gmail.com",
-                'password' => Hash::make('password'),
-                'role' => 'pelanggan',
-            ]);
+        $pelanggan = Pelanggan::create([
+            'user_id' => $userPelanggan->id,
+            'kode_pelanggan' => 'PLG-001',
+            'alamat' => 'Jl. Contoh No. 1, Kota Contoh',
+            'no_telepon' => '081234567801',
+            'no_wa' => '081234567801',
+            'link_maps' => 'https://maps.google.com/?q=-6.200000,106.816666',
+            'foto_rumah' => null,
+            'paket_id' => 1, // Paket Basic
+            'status' => 'aktif',
+        ]);
 
-            $status = $i <= 8 ? 'aktif' : ($i == 9 ? 'pending' : 'nonaktif');
-            $paketId = rand(1, 4);
-
-            $pelanggan = Pelanggan::create([
-                'user_id' => $userPelanggan->id,
-                'alamat' => "Jl. Contoh No. $i, Kota Contoh",
-                'no_wa' => '0812345678' . sprintf('%02d', $i),
-                'link_maps' => 'https://maps.google.com/?q=-6.200000,106.816666',
-                'foto_rumah' => null,
-                'paket_id' => $paketId,
-                'status' => $status,
-            ]);
-
-            // PPPoE
-            PppoeAccount::create([
-                'pelanggan_id' => $pelanggan->id,
-                'username_pppoe' => "user$i",
-                'password_pppoe' => "pass$i",
-            ]);
-
-            // =====================
-            // TAGIHAN (HANYA AKTIF)
-            // =====================
-            if ($status === 'aktif') {
-
-                $paket = PaketWifi::find($paketId);
-
-                // Bulan ini
-                $now = Carbon::now();
-                Tagihan::create([
-                    'pelanggan_id' => $pelanggan->id,
-                    'bulan' => $now->month,
-                    'tahun' => $now->year,
-                    'jumlah' => $paket->harga,
-                    'status' => $i % 3 == 0 ? 'nunggak' : 'lunas',
-                    'tanggal_bayar' => $i % 3 == 0 ? null : Carbon::now()->subDays(rand(1, 10)),
-                ]);
-
-                // Bulan lalu
-                $lastMonth = Carbon::now()->subMonth();
-                Tagihan::create([
-                    'pelanggan_id' => $pelanggan->id,
-                    'bulan' => $lastMonth->month,
-                    'tahun' => $lastMonth->year,
-                    'jumlah' => $paket->harga,
-                    'status' => 'lunas',
-                    'tanggal_bayar' => $lastMonth->copy()->addDays(5),
-                ]);
-
-                // Tunggakan 2 bulan lalu
-                if ($i % 4 == 0) {
-                    $twoMonthsAgo = Carbon::now()->subMonths(2);
-                    Tagihan::create([
-                        'pelanggan_id' => $pelanggan->id,
-                        'bulan' => $twoMonthsAgo->month,
-                        'tahun' => $twoMonthsAgo->year,
-                        'jumlah' => $paket->harga,
-                        'status' => 'nunggak',
-                    ]);
-                }
-            }
-        }
+        // PPPoE Account
+        PppoeAccount::create([
+            'pelanggan_id' => $pelanggan->id,
+            'username_pppoe' => 'user1',
+            'password_pppoe' => 'pass1',
+        ]);
 
         $this->command->info('✅ Database seeded successfully!');
+        $this->command->info('');
+        $this->command->info('=== LOGIN CREDENTIALS ===');
         $this->command->info('Admin    : admin@wifi.com / password');
         $this->command->info('Petugas  : petugas@wifi.com / password');
         $this->command->info('Pelanggan: pelanggan1@gmail.com / password');
+        $this->command->info('');
+        $this->command->info('📝 Note: Tagihan akan di-generate manual oleh admin');
     }
 }
