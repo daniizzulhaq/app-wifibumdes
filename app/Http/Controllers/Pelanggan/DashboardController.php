@@ -69,10 +69,10 @@ class DashboardController extends Controller
 
         // Stats
         $stats = [
-            'belum_bayar' => Tagihan::where('pelanggan_id', $pelanggan->id)
+            'nunggak' => Tagihan::where('pelanggan_id', $pelanggan->id)
                 ->where('status', 'nunggak')
                 ->count(),
-            'total_belum_bayar' => Tagihan::where('pelanggan_id', $pelanggan->id)
+            'total_nunggak' => Tagihan::where('pelanggan_id', $pelanggan->id)
                 ->where('status', 'nunggak')
                 ->sum('jumlah'),
             'menunggu_konfirmasi' => Tagihan::where('pelanggan_id', $pelanggan->id)
@@ -112,7 +112,7 @@ class DashboardController extends Controller
         }
 
         // Validasi hanya bisa upload jika status nunggak
-        if ($tagihan->status != 'nunggak' && $tagihan->status != 'belum_lunas') {
+        if ($tagihan->status != 'nunggak') {
             return redirect()->back()
                 ->with('error', 'Tagihan ini tidak dapat diproses pembayaran.');
         }

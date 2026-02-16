@@ -24,12 +24,21 @@
         </ol>
     </nav>
     
+    @php
+        $namaBulan = [
+            1 => 'Januari', 2 => 'Februari', 3 => 'Maret', 4 => 'April',
+            5 => 'Mei', 6 => 'Juni', 7 => 'Juli', 8 => 'Agustus',
+            9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
+        ];
+        $periodeBulan = $namaBulan[(int)$tagihan->bulan] ?? 'Unknown';
+    @endphp
+    
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Detail Tagihan</h1>
             <p class="text-gray-600 mt-1">
-                Periode {{ \Carbon\Carbon::parse($tagihan->bulan . '-01-' . $tagihan->tahun)->isoFormat('MMMM YYYY') }}
+                Periode {{ $periodeBulan }} {{ $tagihan->tahun }}
             </p>
         </div>
         <div class="mt-4 md:mt-0">
@@ -46,7 +55,7 @@
             @else
                 <span class="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium bg-red-100 text-red-800">
                     <i class="fas fa-exclamation-circle mr-2"></i>
-                    Belum Dibayar
+                    Nunggak
                 </span>
             @endif
         </div>
@@ -97,7 +106,7 @@
                     
                     <div class="flex justify-between items-center pb-3 border-b">
                         <span class="text-gray-600">Periode:</span>
-                        <span class="font-semibold">{{ \Carbon\Carbon::parse($tagihan->bulan . '-01-' . $tagihan->tahun)->isoFormat('MMMM YYYY') }}</span>
+                        <span class="font-semibold">{{ $periodeBulan }} {{ $tagihan->tahun }}</span>
                     </div>
                     
                     <div class="flex justify-between items-center pb-3 border-b">
@@ -159,7 +168,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <p class="text-sm text-gray-600 mb-1">Nama Paket</p>
-                        <p class="font-semibold text-gray-800">{{ $tagihan->pelanggan->paket->nama }}</p>
+                        <p class="font-semibold text-gray-800">{{ $tagihan->pelanggan->paket->nama_paket }}</p>
                     </div>
                     <div>
                         <p class="text-sm text-gray-600 mb-1">Kecepatan</p>
@@ -179,7 +188,7 @@
         <div class="space-y-6">
             
             <!-- Upload Bukti Pembayaran -->
-            @if($tagihan->status == 'nunggak' || $tagihan->status == 'belum_bayar')
+            @if($tagihan->status == 'nunggak')
             <div class="bg-white rounded-xl shadow-md p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">
                     <i class="fas fa-upload mr-2 text-blue-600"></i>
@@ -309,30 +318,30 @@
             @endif
             
            <!-- Status Lunas -->
-@if($tagihan->status == 'lunas')
-<div class="bg-green-50 border border-green-200 rounded-xl p-6">
-    <div class="flex items-start">
-        <i class="fas fa-check-circle text-green-600 text-2xl mt-1"></i>
-        <div class="ml-4 flex-1">
-            <h3 class="font-semibold text-green-800 mb-2">Pembayaran Berhasil</h3>
-            <p class="text-sm text-green-700 mb-3">
-                Terima kasih! Pembayaran Anda telah dikonfirmasi.
-            </p>
-            @if($tagihan->tanggal_bayar)
-            <p class="text-xs text-green-600 mb-3">
-                Dikonfirmasi pada: {{ \Carbon\Carbon::parse($tagihan->tanggal_bayar)->isoFormat('D MMMM YYYY, HH:mm') }}
-            </p>
+            @if($tagihan->status == 'lunas')
+            <div class="bg-green-50 border border-green-200 rounded-xl p-6">
+                <div class="flex items-start">
+                    <i class="fas fa-check-circle text-green-600 text-2xl mt-1"></i>
+                    <div class="ml-4 flex-1">
+                        <h3 class="font-semibold text-green-800 mb-2">Pembayaran Berhasil</h3>
+                        <p class="text-sm text-green-700 mb-3">
+                            Terima kasih! Pembayaran Anda telah dikonfirmasi.
+                        </p>
+                        @if($tagihan->tanggal_bayar)
+                        <p class="text-xs text-green-600 mb-3">
+                            Dikonfirmasi pada: {{ \Carbon\Carbon::parse($tagihan->tanggal_bayar)->isoFormat('D MMMM YYYY, HH:mm') }}
+                        </p>
+                        @endif
+                        <a href="{{ route('pelanggan.tagihan.cetak-invoice', $tagihan->id) }}" 
+                           target="_blank"
+                           class="block w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors text-center">
+                            <i class="fas fa-print mr-2"></i>
+                            Cetak Invoice
+                        </a>
+                    </div>
+                </div>
+            </div>
             @endif
-            <a href="{{ route('pelanggan.tagihan.cetak-invoice', $tagihan->id) }}" 
-               target="_blank"
-               class="block w-full bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors text-center">
-                <i class="fas fa-print mr-2"></i>
-                Cetak Invoice
-            </a>
-        </div>
-    </div>
-</div>
-@endif
             
             <!-- Informasi Rekening -->
             @if($tagihan->status != 'lunas')
