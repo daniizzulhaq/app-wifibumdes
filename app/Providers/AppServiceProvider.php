@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Pagination\Paginator;
+use App\Models\Pelanggan;
+use App\Observers\PelangganObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,5 +26,6 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useBootstrapFive();
         // Atau jika menggunakan Bootstrap 4:
         // Paginator::useBootstrap();
+        Pelanggan::observe(PelangganObserver::class);
     }
 }

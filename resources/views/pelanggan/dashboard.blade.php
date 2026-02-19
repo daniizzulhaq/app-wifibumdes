@@ -1,324 +1,608 @@
+{{-- resources/views/pelanggan/dashboard.blade.php --}}
 @extends('layouts.pelanggan-app')
 
-@section('title', 'Dashboard Pelanggan')
+@section('title', 'Dashboard - ' . auth()->user()->name)
 
 @section('content')
-<div class="space-y-6">
-    
-    <!-- Page Header -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
-            <p class="text-gray-600 mt-1">Selamat datang, {{ Auth::user()->name }}!</p>
-        </div>
-        <div class="mt-4 md:mt-0">
-            <p class="text-sm text-gray-600">
-                <i class="fas fa-calendar-alt mr-2"></i>
-                {{ now()->isoFormat('dddd, D MMMM YYYY') }}
+<div class="dashboard-wrapper">
+
+    {{-- ===== HEADER GREETING ===== --}}
+    <div class="greeting-section">
+        <div class="greeting-text">
+            <span class="greeting-hi">Halo,</span>
+            <h1 class="greeting-name">{{ auth()->user()->name }} 👋</h1>
+            <p class="greeting-sub">{{ $pelanggan->paket->nama_paket ?? 'Paket WiFi' }} &nbsp;·&nbsp; Status: 
+                <span class="status-badge status-{{ $pelanggan->status }}">{{ ucfirst($pelanggan->status) }}</span>
             </p>
+        </div>
+        <div class="greeting-date">
+            <span class="date-day">{{ now()->isoFormat('dddd') }}</span>
+            <span class="date-full">{{ now()->isoFormat('D MMMM YYYY') }}</span>
         </div>
     </div>
-    
-    <!-- Info Pelanggan Card -->
-    <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
-        <div class="flex items-start justify-between">
-            <div>
-                <h2 class="text-lg font-semibold mb-2">Informasi Pelanggan</h2>
-                <div class="space-y-2">
-                    <p class="flex items-center gap-2">
-                        <i class="fas fa-id-card w-5"></i>
-                        <span class="font-mono">{{ $pelanggan->kode_pelanggan ?? 'N/A' }}</span>
-                    </p>
-                    <p class="flex items-center gap-2">
-                        <i class="fas fa-map-marker-alt w-5"></i>
-                        <span>{{ $pelanggan->alamat ?? 'Alamat tidak tersedia' }}</span>
-                    </p>
-                    <p class="flex items-center gap-2">
-                        <i class="fas fa-phone w-5"></i>
-                        <span>{{ $pelanggan->no_hp ?? 'No HP tidak tersedia' }}</span>
-                    </p>
-                </div>
+
+    {{-- ===== STATS CARDS ===== --}}
+    <div class="stats-grid">
+        <div class="stat-card stat-red">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-info">
+                <span class="stat-label">Belum Dibayar</span>
+                <span class="stat-value">Rp {{ number_format($totalNunggak, 0, ',', '.') }}</span>
             </div>
-            <div class="text-right">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
-                    {{ $pelanggan->status == 'aktif' ? 'bg-green-400 text-green-900' : 'bg-red-400 text-red-900' }}">
-                    <i class="fas fa-circle text-xs mr-2"></i>
-                    {{ ucfirst($pelanggan->status ?? 'N/A') }}
-                </span>
+        </div>
+        <div class="stat-card stat-yellow">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-info">
+                <span class="stat-label">Menunggu Konfirmasi</span>
+                <span class="stat-value">Rp {{ number_format($totalMenunggu, 0, ',', '.') }}</span>
+            </div>
+        </div>
+        <div class="stat-card stat-blue">
+            <div class="stat-icon">📶</div>
+            <div class="stat-info">
+                <span class="stat-label">Kecepatan Paket</span>
+                <span class="stat-value">{{ $pelanggan->paket->kecepatan ?? '-' }} Mbps</span>
+            </div>
+        </div>
+        <div class="stat-card stat-green">
+            <div class="stat-icon">📅</div>
+            <div class="stat-info">
+                <span class="stat-label">Bergabung Sejak</span>
+                <span class="stat-value">{{ $pelanggan->tgl_registrasi ? $pelanggan->tgl_registrasi->format('M Y') : '-' }}</span>
             </div>
         </div>
     </div>
-    
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        <!-- Total Tagihan Bulan Ini -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600 mb-1">Tagihan Bulan Ini</p>
-                    <h3 class="text-2xl font-bold text-gray-800">
-                        Rp {{ number_format($tagihan_bulan_ini ?? 0, 0, ',', '.') }}
-                    </h3>
-                </div>
-                <div class="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-file-invoice text-blue-600 text-xl"></i>
-                </div>
-            </div>
-            <p class="text-xs text-gray-500 mt-2">
-                <i class="fas fa-calendar mr-1"></i>
-                {{ now()->isoFormat('MMMM YYYY') }}
-            </p>
-        </div>
-        
-        <!-- Tagihan Belum Bayar -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600 mb-1">Belum Dibayar</p>
-                    <h3 class="text-2xl font-bold text-red-600">
-                        {{ $tagihan_belum_bayar ?? 0 }}
-                    </h3>
-                </div>
-                <div class="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
-                </div>
-            </div>
-            <p class="text-xs text-gray-500 mt-2">
-                Total: Rp {{ number_format($total_belum_bayar ?? 0, 0, ',', '.') }}
-            </p>
-        </div>
-        
-        <!-- Tagihan Lunas -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600 mb-1">Sudah Lunas</p>
-                    <h3 class="text-2xl font-bold text-green-600">
-                        {{ $tagihan_lunas ?? 0 }}
-                    </h3>
-                </div>
-                <div class="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-check-circle text-green-600 text-xl"></i>
-                </div>
-            </div>
-            <p class="text-xs text-gray-500 mt-2">
-                Tahun ini: {{ $tagihan_lunas_tahun_ini ?? 0 }} tagihan
-            </p>
-        </div>
-        
-        <!-- Paket Aktif -->
-        <div class="bg-white rounded-xl shadow-md p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm text-gray-600 mb-1">Paket Aktif</p>
-                    <h3 class="text-lg font-bold text-gray-800">
-                        {{ $paket_aktif->nama_paket ?? 'Tidak ada paket' }}
-                    </h3>
-                </div>
-                <div class="h-12 w-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-box text-purple-600 text-xl"></i>
-                </div>
-            </div>
-            @if(isset($paket_aktif))
-            <p class="text-xs text-gray-500 mt-2">
-                <i class="fas fa-tachometer-alt mr-1"></i>
-                {{ $paket_aktif->kecepatan ?? 'N/A' }} Mbps
-            </p>
-            @endif
-        </div>
-        
-    </div>
-    
-    <!-- Tagihan Terbaru & Notifikasi -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Tagihan Terbaru -->
-        <div class="lg:col-span-2 bg-white rounded-xl shadow-md">
-            <div class="p-6 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-semibold text-gray-800">
-                        <i class="fas fa-file-invoice mr-2 text-blue-600"></i>
-                        Tagihan Terbaru
-                    </h2>
-                    <a href="{{ route('pelanggan.tagihan.index') }}" class="text-sm text-blue-600 hover:text-blue-800">
-                        Lihat Semua <i class="fas fa-arrow-right ml-1"></i>
-                    </a>
-                </div>
-            </div>
-            
-            <div class="p-6">
-             @if(isset($tagihan_terbaru) && $tagihan_terbaru->count() > 0)
-                <div class="space-y-4">
-                    @foreach($tagihan_terbaru as $index => $tagihan)
-@php
-    $parts = explode('-', $tagihan->bulan);
-    $tahun = $parts[0] ?? date('Y');
-    $bulan = $parts[1] ?? date('m');
-    $tanggalBulan = \Carbon\Carbon::create($tahun, $bulan, 1);
-@endphp
-<tr class="hover:bg-gray-50">
-    <td class="px-6 py-4 whitespace-nowrap">
-        <div class="flex items-center">
-            <div class="h-10 w-10 flex-shrink-0 bg-blue-100 rounded-lg flex items-center justify-center">
-                <i class="fas fa-calendar text-blue-600"></i>
-            </div>
-            <div class="ml-4">
-                <div class="text-sm font-medium text-gray-900">
-                    {{ $tanggalBulan->isoFormat('MMMM YYYY') }}
-                </div>
-                <div class="text-xs text-gray-500">
-                    Dibuat: {{ $tagihan->created_at->isoFormat('D MMM Y') }}
-                </div>
-            </div>
-        </div>
-    </td>
-    <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm text-gray-900">
-            @if($tagihan->tanggal_jatuh_tempo)
-                {{ \Carbon\Carbon::parse($tagihan->tanggal_jatuh_tempo)->isoFormat('D MMMM YYYY') }}
-            @else
-                {{ $tanggalBulan->copy()->addDays(10)->isoFormat('D MMMM YYYY') }}
-            @endif
-        </div>
-        @if($tagihan->tanggal_jatuh_tempo && \Carbon\Carbon::parse($tagihan->tanggal_jatuh_tempo)->isPast() && in_array($tagihan->status, ['belum_bayar', 'nunggak']))
-        <div class="text-xs text-red-600 font-medium">
-            <i class="fas fa-exclamation-triangle mr-1"></i>
-            Terlambat
-        </div>
-        @endif
-    </td>
-    <td class="px-6 py-4 whitespace-nowrap">
-        <div class="text-sm font-bold text-gray-900">
-            Rp {{ number_format($tagihan->total ?? $tagihan->jumlah, 0, ',', '.') }}
-        </div>
-    </td>
-    <td class="px-6 py-4 whitespace-nowrap">
-        @if($tagihan->status == 'lunas')
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                <i class="fas fa-check-circle mr-1"></i>
-                Lunas
-            </span>
-        @elseif($tagihan->status == 'menunggu_konfirmasi')
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                <i class="fas fa-clock mr-1"></i>
-                Menunggu Konfirmasi
-            </span>
-        @else
-            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                <i class="fas fa-times-circle mr-1"></i>
-                Belum Bayar
-            </span>
-        @endif
-    </td>
-    <td class="px-6 py-4 whitespace-nowrap text-sm">
-        <div class="flex items-center gap-2">
-            <a href="{{ route('pelanggan.tagihan.show', $tagihan->id) }}" 
-               class="text-blue-600 hover:text-blue-900">
-                <i class="fas fa-eye"></i> Detail
-            </a>
-            @if(in_array($tagihan->status, ['belum_bayar', 'nunggak']))
-            <a href="{{ route('pelanggan.tagihan.show', $tagihan->id) }}" 
-               class="text-green-600 hover:text-green-900">
-                <i class="fas fa-credit-card"></i> Bayar
-            </a>
-            @endif
-        </div>
-    </td>
-</tr>
-@endforeach
-                </div>
-                @else
-                <div class="text-center py-12">
-                    <i class="fas fa-inbox text-gray-300 text-5xl mb-4"></i>
-                    <p class="text-gray-500">Belum ada tagihan</p>
-                </div>
-                @endif
-            </div>
-        </div>
-        
-        <!-- Notifikasi & Info -->
-        <div class="space-y-6">
-            
-            <!-- Paket WiFi Info -->
-            <div class="bg-white rounded-xl shadow-md p-6" id="paket">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    <i class="fas fa-wifi mr-2 text-purple-600"></i>
-                    Paket WiFi Saya
-                </h3>
-                @if(isset($paket_aktif))
-                <div class="space-y-3">
-                    <div class="flex justify-between">
-                        <span class="text-sm text-gray-600">Nama Paket:</span>
-                        <span class="text-sm font-semibold">{{ $paket_aktif->nama_paket }}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-sm text-gray-600">Kecepatan:</span>
-                        <span class="text-sm font-semibold">{{ $paket_aktif->kecepatan }} Mbps</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-sm text-gray-600">Harga/Bulan:</span>
-                        <span class="text-sm font-semibold">Rp {{ number_format($paket_aktif->harga, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="pt-3 border-t">
-                        <p class="text-xs text-gray-500">{{ $paket_aktif->deskripsi ?? 'Tidak ada deskripsi' }}</p>
-                    </div>
-                </div>
-                @else
-                <p class="text-sm text-gray-500 text-center py-4">Belum ada paket aktif</p>
-                @endif
-            </div>
-            
-            <!-- Notifikasi -->
-            <div class="bg-white rounded-xl shadow-md p-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    <i class="fas fa-bell mr-2 text-yellow-600"></i>
-                    Notifikasi
-                </h3>
-                <div class="space-y-3">
-                    @if(isset($notifikasi) && count($notifikasi) > 0)
-                        @foreach($notifikasi as $notif)
-                        <div class="p-3 bg-blue-50 rounded-lg">
-                            <p class="text-sm font-medium text-gray-800">{{ $notif['title'] }}</p>
-                            <p class="text-xs text-gray-600 mt-1">{{ $notif['message'] }}</p>
-                            <p class="text-xs text-gray-400 mt-2">{{ $notif['time'] }}</p>
+
+    <div class="main-content-grid">
+
+        {{-- ===== QR CODE CARD ===== --}}
+        <div class="qr-section">
+            <div class="qr-card">
+                {{-- Decorative top bar --}}
+                <div class="qr-card-header">
+                    <div class="qr-header-left">
+                        <div class="wifi-icon-wrap">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                                <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                                <line x1="12" y1="20" x2="12.01" y2="20"/>
+                            </svg>
                         </div>
-                        @endforeach
-                    @else
-                    <div class="text-center py-6">
-                        <i class="fas fa-bell-slash text-gray-300 text-3xl mb-2"></i>
-                        <p class="text-sm text-gray-500">Tidak ada notifikasi</p>
+                        <div>
+                            <h3 class="qr-title">QR Pembayaran</h3>
+                            <p class="qr-subtitle">Tunjukkan ke petugas saat tagihan</p>
+                        </div>
                     </div>
-                    @endif
+                    <div class="qr-badge">AKTIF</div>
                 </div>
-            </div>
-            
-            <!-- Quick Actions -->
-            <div class="bg-gradient-to-br from-green-400 to-green-600 rounded-xl shadow-md p-6 text-white">
-                <h3 class="text-lg font-semibold mb-4">
-                    <i class="fas fa-headset mr-2"></i>
-                    Butuh Bantuan?
-                </h3>
-                <p class="text-sm mb-4 text-green-50">
-                    Hubungi customer service kami untuk bantuan teknis atau pertanyaan lainnya.
+
+                {{-- QR Code Image --}}
+                <div class="qr-code-wrap">
+                    <div class="qr-frame">
+                        <div class="qr-corner qr-corner-tl"></div>
+                        <div class="qr-corner qr-corner-tr"></div>
+                        <div class="qr-corner qr-corner-bl"></div>
+                        <div class="qr-corner qr-corner-br"></div>
+                        <img 
+                            src="{{ $pelanggan->getQrImageUrl(220) }}" 
+                            alt="QR Code {{ auth()->user()->name }}"
+                            class="qr-img"
+                            id="qrImage"
+                            loading="lazy"
+                        />
+                        <div class="qr-logo-overlay">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                                <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                                <line x1="12" y1="20" x2="12.01" y2="20"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="qr-pulse-ring"></div>
+                </div>
+
+                {{-- Customer Info under QR --}}
+                <div class="qr-customer-info">
+                    <p class="qr-customer-name">{{ auth()->user()->name }}</p>
+                    <p class="qr-customer-id">ID: {{ str_pad($pelanggan->id, 6, '0', STR_PAD_LEFT) }}</p>
+                    <p class="qr-customer-paket">{{ $pelanggan->paket->nama_paket ?? '-' }}</p>
+                </div>
+
+                {{-- Instructions --}}
+                <div class="qr-instructions">
+                    <div class="instruction-item">
+                        <span class="instruction-num">1</span>
+                        <span class="instruction-text">Petugas datang ke rumah Anda</span>
+                    </div>
+                    <div class="instruction-item">
+                        <span class="instruction-num">2</span>
+                        <span class="instruction-text">Tunjukkan QR Code ini kepada petugas</span>
+                    </div>
+                    <div class="instruction-item">
+                        <span class="instruction-num">3</span>
+                        <span class="instruction-text">Petugas scan → tagihan muncul otomatis</span>
+                    </div>
+                    <div class="instruction-item">
+                        <span class="instruction-num">4</span>
+                        <span class="instruction-text">Lakukan pembayaran sesuai tagihan</span>
+                    </div>
+                </div>
+
+                {{-- Download / Print Button --}}
+                <div class="qr-actions">
+                    <button onclick="downloadQR()" class="btn-qr-action btn-download">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="7,10 12,15 17,10"/>
+                            <line x1="12" y1="15" x2="12" y2="3"/>
+                        </svg>
+                        Download QR
+                    </button>
+                    <button onclick="printQR()" class="btn-qr-action btn-print">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <polyline points="6 9 6 2 18 2 18 9"/>
+                            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                            <rect x="6" y="14" width="12" height="8"/>
+                        </svg>
+                        Cetak QR
+                    </button>
+                </div>
+
+                <p class="qr-security-note">
+                    🔒 QR bersifat unik dan hanya berlaku untuk akun Anda
                 </p>
-                <div class="space-y-2">
-                    <a href="https://wa.me/6281234567890" target="_blank" 
-                       class="block w-full bg-white text-green-600 text-center py-2 rounded-lg font-semibold hover:bg-green-50 transition-colors">
-                        <i class="fab fa-whatsapp mr-2"></i>
-                        WhatsApp CS
-                    </a>
-                    <a href="tel:+6281234567890" 
-                       class="block w-full bg-green-700 text-white text-center py-2 rounded-lg font-semibold hover:bg-green-800 transition-colors">
-                        <i class="fas fa-phone mr-2"></i>
-                        Call Center
-                    </a>
+            </div>
+        </div>
+
+        {{-- ===== TAGIHAN TERBARU ===== --}}
+        <div class="tagihan-section">
+            <div class="section-header">
+                <h2 class="section-title">Tagihan Terbaru</h2>
+                <a href="{{ route('pelanggan.tagihan.index') }}" class="section-link">Lihat Semua →</a>
+            </div>
+
+            @if($tagihanTerbaru->count() > 0)
+                <div class="tagihan-list">
+                    @foreach($tagihanTerbaru as $tagihan)
+                    <div class="tagihan-item tagihan-{{ $tagihan->status }}">
+                        <div class="tagihan-left">
+                            <div class="tagihan-icon">
+                                @if($tagihan->status === 'lunas') ✅
+                                @elseif($tagihan->status === 'menunggu_konfirmasi') ⏳
+                                @else ⚠️
+                                @endif
+                            </div>
+                            <div class="tagihan-meta">
+                                <span class="tagihan-period">
+                                    {{ ['','Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][$tagihan->bulan] }} {{ $tagihan->tahun }}
+                                </span>
+                                <span class="tagihan-status-text">
+                                    @if($tagihan->status === 'lunas') Lunas
+                                    @elseif($tagihan->status === 'menunggu_konfirmasi') Menunggu Konfirmasi
+                                    @elseif($tagihan->status === 'nunggak') Belum Dibayar
+                                    @else {{ ucfirst($tagihan->status) }}
+                                    @endif
+                                </span>
+                            </div>
+                        </div>
+                        <div class="tagihan-right">
+                            <span class="tagihan-amount">Rp {{ number_format($tagihan->jumlah, 0, ',', '.') }}</span>
+                            <a href="{{ route('pelanggan.tagihan.show', $tagihan) }}" class="tagihan-detail-btn">Detail</a>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="empty-state">
+                    <span class="empty-icon">📄</span>
+                    <p>Belum ada tagihan</p>
+                </div>
+            @endif
+
+            {{-- Info paket --}}
+            <div class="paket-info-card">
+                <div class="paket-header">
+                    <span class="paket-label">Paket Aktif</span>
+                    <span class="paket-name">{{ $pelanggan->paket->nama_paket ?? '-' }}</span>
+                </div>
+                <div class="paket-details">
+                    <div class="paket-detail-item">
+                        <span>Kecepatan</span>
+                        <strong>{{ $pelanggan->paket->kecepatan ?? '-' }} Mbps</strong>
+                    </div>
+                    <div class="paket-detail-item">
+                        <span>Tagihan/Bulan</span>
+                        <strong>Rp {{ number_format($pelanggan->paket->harga ?? 0, 0, ',', '.') }}</strong>
+                    </div>
                 </div>
             </div>
-            
         </div>
-        
+
     </div>
-    
+</div>
+
+{{-- PRINT AREA (hidden) --}}
+<div id="printArea" style="display:none;">
+    <div style="text-align:center; padding:30px; font-family:sans-serif;">
+        <h2 style="margin:0 0 4px 0;">QR Pembayaran WiFi</h2>
+        <p style="margin:0 0 16px 0; color:#666;">{{ auth()->user()->name }} — ID: {{ str_pad($pelanggan->id, 6, '0', STR_PAD_LEFT) }}</p>
+        <img src="{{ $pelanggan->getQrImageUrl(280) }}" style="width:280px;height:280px;" />
+        <p style="margin:16px 0 4px 0; color:#666;">{{ $pelanggan->paket->nama_paket ?? '' }}</p>
+        <p style="margin:0; font-size:11px; color:#999;">Scan QR ini untuk melihat tagihan pembayaran</p>
+    </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+/* ===== LAYOUT ===== */
+.dashboard-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+}
+
+/* ===== GREETING ===== */
+.greeting-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+.greeting-hi { font-size: 15px; color: #6b7280; font-weight: 500; display: block; }
+.greeting-name { font-size: 28px; font-weight: 800; color: #111827; margin: 2px 0 4px; }
+.greeting-sub { font-size: 14px; color: #6b7280; }
+.status-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.status-aktif { background: #dcfce7; color: #15803d; }
+.status-pending { background: #fef3c7; color: #b45309; }
+.status-nonaktif { background: #fee2e2; color: #dc2626; }
+.greeting-date { text-align: right; }
+.date-day { display: block; font-size: 13px; color: #9ca3af; }
+.date-full { display: block; font-size: 15px; font-weight: 600; color: #374151; }
+
+/* ===== STATS GRID ===== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 28px;
+}
+.stat-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid #f3f4f6;
+    box-shadow: 0 1px 6px rgba(0,0,0,.05);
+}
+.stat-red { border-left: 4px solid #ef4444; }
+.stat-yellow { border-left: 4px solid #f59e0b; }
+.stat-blue { border-left: 4px solid #3b82f6; }
+.stat-green { border-left: 4px solid #10b981; }
+.stat-icon { font-size: 26px; }
+.stat-label { display: block; font-size: 12px; color: #6b7280; font-weight: 500; }
+.stat-value { display: block; font-size: 16px; font-weight: 800; color: #111827; margin-top: 2px; }
+
+/* ===== MAIN GRID ===== */
+.main-content-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 24px;
+    align-items: start;
+}
+@media (max-width: 768px) {
+    .main-content-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== QR CARD ===== */
+.qr-section {}
+.qr-card {
+    background: #fff;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 24px rgba(0,0,0,.08);
+}
+.qr-card-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.qr-header-left { display: flex; align-items: center; gap: 12px; }
+.wifi-icon-wrap {
+    background: rgba(255,255,255,.2);
+    border-radius: 10px;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+.qr-title { font-size: 16px; font-weight: 700; color: #fff; margin: 0; }
+.qr-subtitle { font-size: 12px; color: rgba(255,255,255,.75); margin: 2px 0 0; }
+.qr-badge {
+    background: #10b981;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+}
+
+.qr-code-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 28px 20px 16px;
+    position: relative;
+}
+.qr-frame {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 2px 20px rgba(37,99,235,.15);
+    padding: 10px;
+}
+/* Corner decorations */
+.qr-corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    z-index: 2;
+}
+.qr-corner-tl { top: 4px; left: 4px; border-top: 3px solid #2563eb; border-left: 3px solid #2563eb; border-radius: 4px 0 0 0; }
+.qr-corner-tr { top: 4px; right: 4px; border-top: 3px solid #2563eb; border-right: 3px solid #2563eb; border-radius: 0 4px 0 0; }
+.qr-corner-bl { bottom: 4px; left: 4px; border-bottom: 3px solid #2563eb; border-left: 3px solid #2563eb; border-radius: 0 0 0 4px; }
+.qr-corner-br { bottom: 4px; right: 4px; border-bottom: 3px solid #2563eb; border-right: 3px solid #2563eb; border-radius: 0 0 4px 0; }
+
+.qr-img { display: block; width: 220px; height: 220px; border-radius: 8px; }
+
+.qr-logo-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #2563eb;
+    border-radius: 8px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 4px white;
+}
+
+.qr-pulse-ring {
+    display: none; /* tampilkan jika ingin animasi */
+}
+
+/* Customer info */
+.qr-customer-info {
+    text-align: center;
+    padding: 0 20px 16px;
+}
+.qr-customer-name { font-size: 17px; font-weight: 700; color: #111827; margin: 0 0 2px; }
+.qr-customer-id { font-size: 12px; color: #9ca3af; margin: 0 0 2px; font-family: monospace; }
+.qr-customer-paket { font-size: 12px; color: #6b7280; margin: 0; }
+
+/* Instructions */
+.qr-instructions {
+    margin: 0 20px 16px;
+    background: #f8faff;
+    border-radius: 12px;
+    padding: 14px;
+}
+.instruction-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.instruction-item:last-child { margin-bottom: 0; }
+.instruction-num {
+    background: #2563eb;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.instruction-text { font-size: 13px; color: #374151; line-height: 1.4; }
+
+/* QR Actions */
+.qr-actions {
+    display: flex;
+    gap: 10px;
+    padding: 0 20px 16px;
+}
+.btn-qr-action {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+.btn-download {
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+}
+.btn-download:hover { background: #dbeafe; }
+.btn-print {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+.btn-print:hover { background: #dcfce7; }
+
+.qr-security-note {
+    text-align: center;
+    font-size: 11px;
+    color: #9ca3af;
+    padding: 0 20px 18px;
+    margin: 0;
+}
+
+/* ===== TAGIHAN SECTION ===== */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+.section-title { font-size: 18px; font-weight: 700; color: #111827; margin: 0; }
+.section-link { font-size: 14px; color: #2563eb; text-decoration: none; font-weight: 500; }
+.section-link:hover { text-decoration: underline; }
+
+.tagihan-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.tagihan-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #f3f4f6;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    border-left: 4px solid #e5e7eb;
+}
+.tagihan-lunas { border-left-color: #10b981; }
+.tagihan-nunggak { border-left-color: #ef4444; }
+.tagihan-menunggu_konfirmasi { border-left-color: #f59e0b; }
+
+.tagihan-left { display: flex; align-items: center; gap: 12px; }
+.tagihan-icon { font-size: 22px; }
+.tagihan-period { display: block; font-size: 14px; font-weight: 600; color: #111827; }
+.tagihan-status-text { display: block; font-size: 12px; color: #6b7280; margin-top: 2px; }
+
+.tagihan-right { display: flex; align-items: center; gap: 12px; }
+.tagihan-amount { font-size: 15px; font-weight: 700; color: #111827; }
+.tagihan-detail-btn {
+    font-size: 12px;
+    background: #f3f4f6;
+    color: #374151;
+    padding: 4px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+}
+.tagihan-detail-btn:hover { background: #e5e7eb; }
+
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #9ca3af;
+}
+.empty-icon { font-size: 36px; display: block; margin-bottom: 8px; }
+
+/* ===== PAKET INFO ===== */
+.paket-info-card {
+    background: linear-gradient(135deg, #1e3a5f, #2563eb);
+    border-radius: 14px;
+    padding: 18px 20px;
+    color: white;
+    margin-top: 8px;
+}
+.paket-header { margin-bottom: 12px; }
+.paket-label { font-size: 12px; opacity: 0.8; display: block; }
+.paket-name { font-size: 20px; font-weight: 800; display: block; margin-top: 2px; }
+.paket-details { display: flex; gap: 24px; }
+.paket-detail-item span { font-size: 12px; opacity: 0.8; display: block; }
+.paket-detail-item strong { font-size: 15px; font-weight: 700; }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+function downloadQR() {
+    const img = document.getElementById('qrImage');
+    const canvas = document.createElement('canvas');
+    canvas.width = 320;
+    canvas.height = 380;
+    const ctx = canvas.getContext('2d');
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 320, 380);
+
+    const qrImg = new Image();
+    qrImg.crossOrigin = 'anonymous';
+    qrImg.onload = function() {
+        ctx.drawImage(qrImg, 50, 20, 220, 220);
+
+        ctx.fillStyle = '#111827';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('{{ auth()->user()->name }}', 160, 268);
+
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '13px sans-serif';
+        ctx.fillText('{{ $pelanggan->paket->nama_paket ?? "" }}', 160, 290);
+
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('ID: {{ str_pad($pelanggan->id, 6, "0", STR_PAD_LEFT) }}', 160, 312);
+
+        ctx.fillStyle = '#d1d5db';
+        ctx.fillRect(40, 328, 240, 1);
+
+        ctx.fillStyle = '#9ca3af';
+        ctx.font = '11px sans-serif';
+        ctx.fillText('Scan untuk pembayaran WiFi', 160, 350);
+
+        const link = document.createElement('a');
+        link.download = 'QR-Pembayaran-{{ auth()->user()->name }}.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    };
+    qrImg.src = img.src;
+}
+
+function printQR() {
+    const printContent = document.getElementById('printArea').innerHTML;
+    const win = window.open('', '_blank', 'width=400,height=500');
+    win.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head><title>QR Pembayaran WiFi</title>
+        <style>
+            body { margin: 0; padding: 20px; font-family: sans-serif; }
+            @media print { body { margin: 0; } }
+        </style>
+        </head>
+        <body>${printContent}</body>
+        </html>
+    `);
+    win.document.close();
+    win.focus();
+    setTimeout(() => { win.print(); win.close(); }, 300);
+}
+</script>
+@endpush

@@ -248,6 +248,37 @@ class PembayaranController extends Controller
         return view('petugas.pembayaran.kwitansi', compact('tagihan'));
     }
 
+    public function indexByPelanggan(\App\Models\Pelanggan $pelanggan)
+{
+    $pelanggan->load(['user', 'paket']);
+
+    // Tagihan yang belum bayar (prioritas utama petugas)
+    $tagihanNunggak = \App\Models\Tagihan::where('pelanggan_id', $pelanggan->id)
+        ->whereIn('status', ['nunggak', 'belum_bayar', 'menunggu_konfirmasi'])
+        ->orderBy('tahun', 'asc')
+        ->orderBy('bulan', 'asc')
+        ->get();
+
+    // Semua tagihan untuk riwayat
+    $tagihans = \App\Models\Tagihan::where('pelanggan_id', $pelanggan->id)
+        ->orderBy('tahun', 'desc')
+        ->orderBy('bulan', 'desc')
+        ->paginate(10);
+
+    // Total yang harus dibayar
+    $totalTagihan = $tagihanNunggak
+        ->whereIn('status', ['nunggak', 'belum_bayar'])
+        ->sum('jumlah');
+
+    return view('petugas.pembayaran.pelanggan', compact(
+        'pelanggan',
+        'tagihanNunggak',
+        'tagihans',
+        'totalTagihan'
+    ));
+}
+
+
     /**
      * Laporan penarikan harian petugas
      */

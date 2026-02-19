@@ -357,6 +357,42 @@ class TagihanController extends Controller
         return view('admin.tagihan.menunggu_konfirmasi', compact('tagihans'));
     }
 
+
+    public function indexByPelanggan(\App\Models\Pelanggan $pelanggan)
+{
+    $pelanggan->load(['user', 'paket']);
+
+    // Ambil semua tagihan pelanggan ini
+    $tagihans = \App\Models\Tagihan::with(['pelanggan.user', 'pelanggan.paket'])
+        ->where('pelanggan_id', $pelanggan->id)
+        ->orderBy('tahun', 'desc')
+        ->orderBy('bulan', 'desc')
+        ->paginate(20);
+
+    // Statistik
+    $stats = [
+        'total_nunggak'  => \App\Models\Tagihan::where('pelanggan_id', $pelanggan->id)
+                               ->whereIn('status', ['nunggak', 'belum_bayar'])->sum('jumlah'),
+        'jml_nunggak'    => \App\Models\Tagihan::where('pelanggan_id', $pelanggan->id)
+                               ->whereIn('status', ['nunggak', 'belum_bayar'])->count(),
+        'total_lunas'    => \App\Models\Tagihan::where('pelanggan_id', $pelanggan->id)
+                               ->where('status', 'lunas')->sum('jumlah'),
+        'jml_lunas'      => \App\Models\Tagihan::where('pelanggan_id', $pelanggan->id)
+                               ->where('status', 'lunas')->count(),
+        'menunggu'       => \App\Models\Tagihan::where('pelanggan_id', $pelanggan->id)
+                               ->where('status', 'menunggu_konfirmasi')->count(),
+    ];
+
+    // Tagihan nunggak untuk ditampilkan paling atas (aksi cepat)
+    $tagihanNunggak = \App\Models\Tagihan::where('pelanggan_id', $pelanggan->id)
+        ->whereIn('status', ['nunggak', 'belum_bayar', 'menunggu_konfirmasi'])
+        ->orderBy('tahun', 'asc')
+        ->orderBy('bulan', 'asc')
+        ->get();
+
+    return view('admin.tagihan.pelanggan', compact('pelanggan', 'tagihans', 'stats', 'tagihanNunggak'));
+}
+
     /**
      * Hapus tagihan (opsional, hati-hati jika digunakan)
      */
