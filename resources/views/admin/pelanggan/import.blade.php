@@ -5,7 +5,7 @@
 
 @section('content')
 <style>
-    .container-custom { max-width: 900px; margin: 0 auto; padding: 20px; }
+    .container-custom { max-width: 860px; margin: 0 auto; padding: 20px; }
     .card { background: white; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 24px; }
     .card-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; }
     .card-header h3 { margin: 0; font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
@@ -13,7 +13,7 @@
     .back-link { display: inline-flex; align-items: center; gap: 8px; color: #667eea; text-decoration: none; font-weight: 600; margin-bottom: 20px; font-size: 14px; }
     .back-link:hover { color: #5568d3; }
 
-    .upload-area { border: 2px dashed #667eea; border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; background: #f8f7ff; margin-bottom: 20px; }
+    .upload-area { border: 2px dashed #667eea; border-radius: 12px; padding: 40px; text-align: center; cursor: pointer; transition: all 0.3s; background: #f8f7ff; }
     .upload-area:hover, .upload-area.drag-over { background: #ede9ff; border-color: #5568d3; }
     .upload-area i { font-size: 48px; color: #667eea; margin-bottom: 12px; display: block; }
     .upload-area p { margin: 0; color: #374151; font-size: 15px; }
@@ -21,11 +21,6 @@
     #file_excel { display: none; }
     .file-selected { background: #d1fae5; border-color: #10b981; }
     .file-selected i { color: #10b981; }
-
-    .form-group { margin-bottom: 20px; }
-    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #374151; font-size: 14px; }
-    .form-control { width: 100%; padding: 10px 12px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; outline: none; transition: border-color 0.3s; box-sizing: border-box; }
-    .form-control:focus { border-color: #667eea; }
 
     .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 8px; text-decoration: none; border: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s; }
     .btn-primary { background: #667eea; color: white; }
@@ -45,7 +40,7 @@
     .alert-info { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
     .alert-warning { background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
 
-    #previewSection { display: none; }
+    #previewSection { display: none; margin-top: 24px; }
     .table-responsive { overflow-x: auto; border-radius: 8px; border: 1px solid #e5e7eb; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     thead { background: #f9fafb; }
@@ -53,8 +48,6 @@
     td { padding: 10px 12px; border-bottom: 1px solid #f3f4f6; }
     tbody tr:hover { background: #f9fafb; }
     .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
-    .paket-info { background: #f3f4f6; border-radius: 8px; padding: 12px 16px; font-size: 13px; color: #374151; margin-top: 8px; }
-    .paket-info strong { color: #667eea; }
 </style>
 
 <div class="container-custom">
@@ -75,6 +68,7 @@
         </div>
     @endif
 
+    <!-- Petunjuk -->
     <div class="card">
         <div class="card-header">
             <h3><i class="fas fa-info-circle"></i> Petunjuk Import</h3>
@@ -84,8 +78,8 @@
                 <i class="fas fa-info-circle fa-lg"></i>
                 <div>
                     <strong>Format kolom Excel:</strong> A=NO, B=NAMA*, C=ALAMAT*, D=NO WA, E=email PPOE, F=MAP, G=PAKET (harga angka)<br>
-                    <strong>Password default</strong> semua pelanggan: <code>12345678</code><br>
-                    <strong>Kolom PAKET</strong> dicocokkan ke harga paket di sistem. Jika tidak cocok → pakai Paket Default yang dipilih.
+                    <strong>Paket</strong> dicocokkan otomatis berdasarkan harga di kolom G (misal: 100000 → paket Rp100.000, 150000 → paket Rp150.000)<br>
+                    <strong>Password default</strong> semua pelanggan yang diimport: <code>12345678</code>
                 </div>
             </div>
             <div style="margin-top: 16px;">
@@ -96,6 +90,7 @@
         </div>
     </div>
 
+    <!-- Upload -->
     <div class="card">
         <div class="card-header">
             <h3><i class="fas fa-file-import"></i> Upload File Excel</h3>
@@ -104,39 +99,6 @@
             <form id="importForm" action="{{ route('admin.pelanggan.import.process') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <!-- Paket Default -->
-                <div class="form-group">
-                    <label for="default_paket_id">
-                        <i class="fas fa-wifi"></i> Paket Default <span style="color:#ef4444;">*</span>
-                        <small style="font-weight:400; color:#6b7280; margin-left:6px;">
-                            — dipakai jika harga di Excel tidak cocok dengan paket di sistem
-                        </small>
-                    </label>
-                    <select name="default_paket_id" id="default_paket_id"
-                            class="form-control @error('default_paket_id') is-invalid @enderror"
-                            required onchange="updatePaketInfo()">
-                        <option value="">-- Pilih Paket Default --</option>
-                        @foreach($pakets as $paket)
-                            <option value="{{ $paket->id }}"
-                                data-nama="{{ $paket->nama_paket ?? $paket->nama ?? '' }}"
-                                data-harga="{{ number_format((int) round((float) $paket->harga), 0, ',', '.') }}"
-                                {{ old('default_paket_id') == $paket->id ? 'selected' : '' }}>
-                                {{ $paket->nama_paket ?? $paket->nama ?? 'Paket #'.$paket->id }}
-                                — Rp {{ number_format((int) round((float) $paket->harga), 0, ',', '.') }}/bulan
-                            </option>
-                        @endforeach
-                    </select>
-                    @error('default_paket_id')
-                        <span style="color:#ef4444; font-size:12px;">{{ $message }}</span>
-                    @enderror
-                    <div class="paket-info" id="paketInfo" style="display:none;">
-                        Pelanggan tanpa paket cocok → <strong id="paketInfoText"></strong>
-                    </div>
-                </div>
-
-                <hr style="border:none; border-top:1px solid #e5e7eb; margin:24px 0;">
-
-                <!-- Upload Area -->
                 <div class="upload-area" id="uploadArea" onclick="document.getElementById('file_excel').click()">
                     <i class="fas fa-cloud-upload-alt" id="uploadIcon"></i>
                     <p id="uploadText">Klik atau seret file Excel ke sini</p>
@@ -145,21 +107,20 @@
                 </div>
 
                 @error('file_excel')
-                    <div class="alert alert-danger" style="margin-top:10px;">
+                    <div class="alert alert-danger" style="margin-top:12px;">
                         <i class="fas fa-exclamation-circle"></i>
                         <span>{{ $message }}</span>
                     </div>
                 @enderror
 
-                <!-- Preview Section -->
+                <!-- Preview -->
                 <div id="previewSection">
-                    <hr style="margin: 24px 0; border: none; border-top: 1px solid #e5e7eb;">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-                        <h4 style="margin:0; color:#374151; font-size:16px; font-weight:700;">
+                        <h4 style="margin:0; font-size:16px; font-weight:700; color:#374151;">
                             Preview Data
-                            <span id="previewCount" style="background:#667eea; color:white; border-radius:12px; padding:2px 10px; font-size:12px; margin-left:8px;"></span>
+                            <span id="previewCount" style="background:#667eea; color:white; border-radius:12px; padding:2px 10px; font-size:12px; margin-left:6px;"></span>
                         </h4>
-                        <small style="color:#6b7280;" id="totalCount"></small>
+                        <small id="totalCount" style="color:#6b7280;"></small>
                     </div>
                     <div class="table-responsive">
                         <table>
@@ -170,15 +131,15 @@
                                     <th>Alamat</th>
                                     <th>No WA</th>
                                     <th>Email</th>
-                                    <th>Paket (dari Excel)</th>
+                                    <th>Paket</th>
                                 </tr>
                             </thead>
                             <tbody id="previewBody"></tbody>
                         </table>
                     </div>
-                    <div class="alert alert-warning" style="margin-top:16px;">
+                    <div class="alert alert-warning" style="margin-top:12px;">
                         <i class="fas fa-exclamation-triangle"></i>
-                        <span>Preview <strong>10 baris pertama</strong>. Semua baris valid akan diimport. Baris dengan paket "(pakai default)" akan menggunakan paket default yang dipilih.</span>
+                        <span>Preview <strong>10 baris pertama</strong>. Semua baris valid akan diimport saat klik Import.</span>
                     </div>
                 </div>
 
@@ -212,15 +173,15 @@ document.addEventListener('DOMContentLoaded', function () {
         uploadArea.classList.remove('drag-over');
         if (e.dataTransfer.files.length) {
             fileInput.files = e.dataTransfer.files;
-            handleFileSelected(e.dataTransfer.files[0]);
+            handleFile(e.dataTransfer.files[0]);
         }
     });
 
     fileInput.addEventListener('change', function () {
-        if (this.files.length) handleFileSelected(this.files[0]);
+        if (this.files.length) handleFile(this.files[0]);
     });
 
-    function handleFileSelected(file) {
+    function handleFile(file) {
         uploadArea.classList.add('file-selected');
         document.getElementById('uploadIcon').className = 'fas fa-file-excel';
         document.getElementById('uploadText').textContent = file.name;
@@ -237,33 +198,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-function updatePaketInfo() {
-    const sel  = document.getElementById('default_paket_id');
-    const info = document.getElementById('paketInfo');
-    const text = document.getElementById('paketInfoText');
-    if (sel.value) {
-        const opt = sel.options[sel.selectedIndex];
-        text.textContent = opt.dataset.nama + ' — Rp ' + opt.dataset.harga + '/bulan';
-        info.style.display = 'block';
-    } else {
-        info.style.display = 'none';
-    }
-}
-
 function loadPreview() {
     const file = document.getElementById('file_excel').files[0];
     if (!file) return;
+
+    const btn = document.getElementById('previewBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+    btn.disabled = true;
 
     const formData = new FormData();
     formData.append('file_excel', file);
     formData.append('_token', '{{ csrf_token() }}');
 
-    document.getElementById('previewBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-
     fetch('{{ route("admin.pelanggan.import.preview") }}', { method: 'POST', body: formData })
         .then(r => r.json())
         .then(data => {
-            document.getElementById('previewBtn').innerHTML = '<i class="fas fa-eye"></i> Preview';
+            btn.innerHTML = '<i class="fas fa-eye"></i> Preview';
+            btn.disabled = false;
 
             if (data.error) { alert('Error: ' + data.error); return; }
 
@@ -286,7 +237,8 @@ function loadPreview() {
             document.getElementById('previewSection').style.display = 'block';
         })
         .catch(err => {
-            document.getElementById('previewBtn').innerHTML = '<i class="fas fa-eye"></i> Preview';
+            btn.innerHTML = '<i class="fas fa-eye"></i> Preview';
+            btn.disabled = false;
             alert('Gagal memuat preview: ' + err);
         });
 }
