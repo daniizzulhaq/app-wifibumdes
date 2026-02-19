@@ -119,7 +119,7 @@ class ImportPelangganController extends Controller
                     'link_maps'      => null,
                     'paket_id'       => $paketId,
                     'status'         => 'aktif',
-                    'tgl_registrasi' => now(),
+                    
                 ]);
 
                 $imported++;
