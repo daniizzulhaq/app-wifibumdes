@@ -15,7 +15,7 @@ use App\Http\Controllers\Admin\BukuKasController;
 use App\Http\Controllers\Admin\LaporanTagihanController;
 use App\Http\Controllers\Petugas\PembayaranController;
 use App\Http\Controllers\Petugas\PaketWifiController as PetugasPaketWifiController;
-
+use App\Http\Controllers\Admin\ImportPelangganController;
 
 /*
 |--------------------------------------------------------------------------
@@ -57,8 +57,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Dashboard
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     
-    
-    // Laporan Tagihan (BARU)
+    // Laporan Tagihan
     Route::get('/laporan/tagihan', [LaporanTagihanController::class, 'index'])->name('laporan.tagihan');
     Route::get('/laporan/tagihan/cetak', [LaporanTagihanController::class, 'cetak'])->name('laporan.tagihan.cetak');
     
@@ -67,29 +66,37 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Users
     Route::resource('users', UserController::class);
-    
-    // Pelanggan Management
+
+    // ---------------------------------------------------------------
+    // Import Pelanggan — WAJIB sebelum Route::resource pelanggan
+    // ---------------------------------------------------------------
+    Route::get('/pelanggan/import',          [ImportPelangganController::class, 'index'])->name('pelanggan.import');
+    Route::get('/pelanggan/import/template', [ImportPelangganController::class, 'downloadTemplate'])->name('pelanggan.import.template');
+    Route::post('/pelanggan/import/preview', [ImportPelangganController::class, 'preview'])->name('pelanggan.import.preview');
+    Route::post('/pelanggan/import/process', [ImportPelangganController::class, 'import'])->name('pelanggan.import.process');
+
+    // Pelanggan Management — resource SETELAH import
     Route::resource('pelanggan', AdminPelangganController::class);
-    Route::post('/pelanggan/{pelanggan}/status', [AdminPelangganController::class, 'updateStatus'])->name('pelanggan.update-status');
-    Route::post('/pelanggan/bulk-action', [AdminPelangganController::class, 'bulkAction'])->name('pelanggan.bulk-action');
-    Route::get('/pelanggan-export', [AdminPelangganController::class, 'export'])->name('pelanggan.export');
-    
+    Route::post('/pelanggan/{pelanggan}/status',  [AdminPelangganController::class, 'updateStatus'])->name('pelanggan.update-status');
+    Route::post('/pelanggan/bulk-action',          [AdminPelangganController::class, 'bulkAction'])->name('pelanggan.bulk-action');
+    Route::get('/pelanggan-export',                [AdminPelangganController::class, 'export'])->name('pelanggan.export');
+
     // Tagihan Management
-    Route::get('/tagihan', [AdminTagihanController::class, 'index'])->name('tagihan.index');
-    Route::get('/tagihan/nunggak', [AdminTagihanController::class, 'nunggak'])->name('tagihan.nunggak');
-    Route::get('/tagihan/{tagihan}', [AdminTagihanController::class, 'show'])->name('tagihan.show');
-    Route::post('/tagihan/{tagihan}/konfirmasi', [AdminTagihanController::class, 'konfirmasi'])->name('tagihan.konfirmasi');
-    Route::post('/tagihan/{tagihan}/tolak', [AdminTagihanController::class, 'tolakPembayaran'])->name('tagihan.tolak');
-    Route::post('/tagihan/generate', [AdminTagihanController::class, 'generate'])->name('tagihan.generate');
+    Route::get('/tagihan',                           [AdminTagihanController::class, 'index'])->name('tagihan.index');
+    Route::get('/tagihan/nunggak',                   [AdminTagihanController::class, 'nunggak'])->name('tagihan.nunggak');
+    Route::get('/tagihan/{tagihan}',                 [AdminTagihanController::class, 'show'])->name('tagihan.show');
+    Route::post('/tagihan/{tagihan}/konfirmasi',     [AdminTagihanController::class, 'konfirmasi'])->name('tagihan.konfirmasi');
+    Route::post('/tagihan/{tagihan}/tolak',          [AdminTagihanController::class, 'tolakPembayaran'])->name('tagihan.tolak');
+    Route::post('/tagihan/generate',                 [AdminTagihanController::class, 'generate'])->name('tagihan.generate');
     
     // Buku Kas
-    Route::get('/buku-kas', [BukuKasController::class, 'index'])->name('buku_kas.index');
-    Route::get('/buku-kas/cetak', [BukuKasController::class, 'cetak'])->name('buku_kas.cetak');
-    Route::get('/buku-kas/create', [BukuKasController::class, 'create'])->name('buku_kas.create');
-    Route::post('/buku-kas', [BukuKasController::class, 'store'])->name('buku_kas.store');
-    Route::get('/buku-kas/{bukuKas}/edit', [BukuKasController::class, 'edit'])->name('buku_kas.edit');
-    Route::put('/buku-kas/{bukuKas}', [BukuKasController::class, 'update'])->name('buku_kas.update');
-    Route::delete('/buku-kas/{bukuKas}', [BukuKasController::class, 'destroy'])->name('buku_kas.destroy');
+    Route::get('/buku-kas',                  [BukuKasController::class, 'index'])->name('buku_kas.index');
+    Route::get('/buku-kas/cetak',            [BukuKasController::class, 'cetak'])->name('buku_kas.cetak');
+    Route::get('/buku-kas/create',           [BukuKasController::class, 'create'])->name('buku_kas.create');
+    Route::post('/buku-kas',                 [BukuKasController::class, 'store'])->name('buku_kas.store');
+    Route::get('/buku-kas/{bukuKas}/edit',   [BukuKasController::class, 'edit'])->name('buku_kas.edit');
+    Route::put('/buku-kas/{bukuKas}',        [BukuKasController::class, 'update'])->name('buku_kas.update');
+    Route::delete('/buku-kas/{bukuKas}',     [BukuKasController::class, 'destroy'])->name('buku_kas.destroy');
     
     // Settings
     Route::get('/settings', function () {
@@ -114,52 +121,36 @@ Route::middleware(['auth', 'role:petugas'])->prefix('petugas')->name('petugas.')
     
     // Pelanggan Management
     Route::resource('pelanggan', PetugasPelangganController::class);
-    Route::post('/pelanggan/{pelanggan}/status', [PetugasPelangganController::class, 'updateStatus'])->name('pelanggan.update-status');
-    Route::post('/pelanggan/{pelanggan}/paket', [PetugasPelangganController::class, 'updatePaket'])->name('pelanggan.update-paket');
-    Route::post('/pelanggan/{pelanggan}/pppoe', [PetugasPelangganController::class, 'updatePppoe'])->name('pelanggan.update-pppoe');
-    Route::post('/pelanggan-bulk-action', [PetugasPelangganController::class, 'bulkAction'])->name('pelanggan.bulk-action');
-    Route::get('/pelanggan-export', [PetugasPelangganController::class, 'export'])->name('pelanggan.export');
-    Route::get('/generate-password', [PetugasPelangganController::class, 'generatePassword'])->name('generate-password');
+    Route::post('/pelanggan/{pelanggan}/status',  [PetugasPelangganController::class, 'updateStatus'])->name('pelanggan.update-status');
+    Route::post('/pelanggan/{pelanggan}/paket',   [PetugasPelangganController::class, 'updatePaket'])->name('pelanggan.update-paket');
+    Route::post('/pelanggan/{pelanggan}/pppoe',   [PetugasPelangganController::class, 'updatePppoe'])->name('pelanggan.update-pppoe');
+    Route::post('/pelanggan-bulk-action',          [PetugasPelangganController::class, 'bulkAction'])->name('pelanggan.bulk-action');
+    Route::get('/pelanggan-export',                [PetugasPelangganController::class, 'export'])->name('pelanggan.export');
+    Route::get('/generate-password',               [PetugasPelangganController::class, 'generatePassword'])->name('generate-password');
     
     // Tagihan Management
     Route::prefix('tagihan')->name('tagihan.')->group(function () {
-        // Index - Daftar semua tagihan
-        Route::get('/', [PetugasTagihanController::class, 'index'])->name('index');
-
-        // Menunggu Konfirmasi (WAJIB sebelum /{tagihan})
-        Route::get('/menunggu-konfirmasi', [PetugasTagihanController::class, 'menungguKonfirmasi'])->name('menunggu-konfirmasi');
-
-        // Nunggak - Daftar tagihan nunggak
-        Route::get('/nunggak', [PetugasTagihanController::class, 'nunggak'])->name('nunggak');
-
-        // Generate tagihan bulanan
-        Route::post('/generate', [PetugasTagihanController::class, 'generate'])->name('generate');
-
-        // Konfirmasi pembayaran
-        Route::post('/{tagihan}/konfirmasi', [PetugasTagihanController::class, 'konfirmasi'])->name('konfirmasi');
-
-        // Tolak pembayaran
-        Route::post('/{tagihan}/tolak', [PetugasTagihanController::class, 'tolakPembayaran'])->name('tolak');
-
-        // Detail tagihan (HARUS PALING BAWAH)
-        Route::get('/{tagihan}', [PetugasTagihanController::class, 'show'])->name('show');
+        Route::get('/',                          [PetugasTagihanController::class, 'index'])->name('index');
+        Route::get('/menunggu-konfirmasi',       [PetugasTagihanController::class, 'menungguKonfirmasi'])->name('menunggu-konfirmasi');
+        Route::get('/nunggak',                   [PetugasTagihanController::class, 'nunggak'])->name('nunggak');
+        Route::post('/generate',                 [PetugasTagihanController::class, 'generate'])->name('generate');
+        Route::post('/{tagihan}/konfirmasi',     [PetugasTagihanController::class, 'konfirmasi'])->name('konfirmasi');
+        Route::post('/{tagihan}/tolak',          [PetugasTagihanController::class, 'tolakPembayaran'])->name('tolak');
+        Route::get('/{tagihan}',                 [PetugasTagihanController::class, 'show'])->name('show');
     });
 
     // Pembayaran
     Route::prefix('pembayaran')->name('pembayaran.')->group(function () {
-        Route::get('/', [PembayaranController::class, 'index'])->name('index');
-        Route::get('/{tagihan}', [PembayaranController::class, 'show'])->name('show');
-        Route::post('/{tagihan}/konfirmasi', [PembayaranController::class, 'konfirmasi'])->name('konfirmasi');
-        Route::post('/batch-konfirmasi', [PembayaranController::class, 'batchKonfirmasi'])->name('batch-konfirmasi');
-        Route::get('/{tagihan}/kwitansi', [PembayaranController::class, 'cetakKwitansi'])->name('kwitansi');
-        Route::post('/{tagihan}/tolak', [PembayaranController::class, 'tolak'])->name('tolak');
-
-         Route::get('/laporan/harian', [PembayaranController::class, 'laporanHarian'])->name('laporan-harian');
+        Route::get('/',                              [PembayaranController::class, 'index'])->name('index');
+        Route::get('/laporan/harian',                [PembayaranController::class, 'laporanHarian'])->name('laporan-harian');
+        Route::get('/{tagihan}',                     [PembayaranController::class, 'show'])->name('show');
+        Route::post('/{tagihan}/konfirmasi',         [PembayaranController::class, 'konfirmasi'])->name('konfirmasi');
+        Route::post('/batch-konfirmasi',             [PembayaranController::class, 'batchKonfirmasi'])->name('batch-konfirmasi');
+        Route::get('/{tagihan}/kwitansi',            [PembayaranController::class, 'cetakKwitansi'])->name('kwitansi');
+        Route::post('/{tagihan}/tolak',              [PembayaranController::class, 'tolak'])->name('tolak');
     });
 
-
     Route::resource('paket', PetugasPaketWifiController::class);
-  
 });
 
 /*
@@ -171,14 +162,14 @@ Route::middleware(['auth', 'role:pelanggan'])->prefix('pelanggan')->name('pelang
     Route::get('/dashboard', [PelangganDashboardController::class, 'index'])->name('dashboard');
     
     // Tagihan
-    Route::get('/tagihan', [PelangganDashboardController::class, 'tagihan'])->name('tagihan.index');
-    Route::get('/tagihan/{tagihan}', [PelangganDashboardController::class, 'tagihanShow'])->name('tagihan.show');
-    Route::post('/tagihan/{tagihan}/upload-bukti', [PelangganDashboardController::class, 'uploadBukti'])->name('tagihan.upload-bukti');
-    Route::get('/tagihan/{tagihan}/cetak-invoice', [PelangganDashboardController::class, 'cetakInvoice'])->name('tagihan.cetak-invoice'); // ✅ ROUTE BARU
+    Route::get('/tagihan',                              [PelangganDashboardController::class, 'tagihan'])->name('tagihan.index');
+    Route::get('/tagihan/{tagihan}',                    [PelangganDashboardController::class, 'tagihanShow'])->name('tagihan.show');
+    Route::post('/tagihan/{tagihan}/upload-bukti',      [PelangganDashboardController::class, 'uploadBukti'])->name('tagihan.upload-bukti');
+    Route::get('/tagihan/{tagihan}/cetak-invoice',      [PelangganDashboardController::class, 'cetakInvoice'])->name('tagihan.cetak-invoice');
     
     // Profile
-    Route::get('/profile', [PelangganDashboardController::class, 'profile'])->name('profile');
-    Route::put('/profile', [PelangganDashboardController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/profile',          [PelangganDashboardController::class, 'profile'])->name('profile');
+    Route::put('/profile',          [PelangganDashboardController::class, 'updateProfile'])->name('profile.update');
     Route::put('/profile/change-password', [PelangganDashboardController::class, 'changePassword'])->name('profile.change-password');
     
     // Paket WiFi

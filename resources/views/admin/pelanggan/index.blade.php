@@ -11,6 +11,16 @@
         padding: 20px;
     }
     
+    
+.btn-success:hover {
+    background: #059669;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+}
+
     .header-section {
         display: flex;
         justify-content: space-between;
@@ -298,16 +308,24 @@
 
 <div class="container-custom">
     <!-- Header -->
-    <div class="header-section">
-        <div class="header-title">
-            <h2>📋 Data Pelanggan</h2>
-            <p>Kelola data pelanggan WiFi</p>
-        </div>
+   <div class="header-section">
+    <div class="header-title">
+        <h2>📋 Data Pelanggan</h2>
+        <p>Kelola data pelanggan WiFi</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        {{-- Tombol Import (BARU) --}}
+        <a href="{{ route('admin.pelanggan.import') }}" class="btn btn-success">
+            <i class="fas fa-file-import"></i>
+            Import Excel
+        </a>
+        {{-- Tombol Tambah (sudah ada) --}}
         <a href="{{ route('admin.pelanggan.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i>
             Tambah Pelanggan
         </a>
     </div>
+</div>
 
     <!-- Stats -->
     <div class="stats-grid">
